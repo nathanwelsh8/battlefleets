@@ -1,10 +1,20 @@
-# battlefleets
+# Battlefleets
 School project
 Badly Designed and even worsly implemented by Nathan Welsh
 
 INSTALL INSTRCTONS:
 1. Get python 3.4 or +
 2. Youtube tutorial how to get pygame module
-3. run runGame.py and enjoy
+3. Download latest version of pygame x.x.x
+4. run runGame.py and enjoy
 
-steps one and 2 may take longer than step 3
+ <Steps 1 and 2 may take longer than step 3 & 4>
+
+FUTURE RELEASE(priority ranked):
+
+1. Change buttons to ones similar to <back> on leaderboard
+   as they look better.
+2. Online leaderboard so people can comapare scores livetime.
+3. Refined scoring system to stop their being a limit to 
+   highscores.
+
