@@ -20,7 +20,7 @@
 #    Add highscore calculator 										  :Done 24/01/2018
 #    Stick highscore into textfile                                                                        :Done 26/01/18
 #
-#    Leaderboard?... optional
+#    Leaderboard?... optional                                       :Done
 #
 #    Show different screens when all fleets sunk 					  :Done if user win
 #
@@ -139,7 +139,8 @@ class newSprite(pygame.sprite.Sprite):
      def move(self, xpos, ypos, centre=False):
         '''
         Allows for the sprite to be positioned on the interface
-        centre is false to make sure sprite is not snapped in place'''
+        centre is false to make sure sprite is not snapped in place
+        '''
 
         if centre:
             #only true if otherwise toggled
@@ -377,42 +378,42 @@ class ai_ship_guess:
                   ### read/write textfile vars ###
                             
 def get_highscore(name):
-    #
-    # This sub searches through the specified textfile
-    # then finds the username and coresponding higscore
-    # IF username not found then it creates one and allowcates
-    # score of 0.
-    # data is formatted like so:   username:highscore
-    #
-
+        '''
+        # This sub searches through the specified textfile
+        # then finds the username and coresponding higscore
+        # IF username not found then it creates one and allowcates
+        # score of 0.
+        # data is formatted like so:   username:highscore
+        '''
+        print('name IN:',name)
     #will raise error if not exist
         try:
-                  with open('username.txt','r') as file:
-                          for line in file:
+          with open('username.txt','r') as file:
+              for line in file:
 
-                                    string_devider = ":"
-                                    for search in range(0, len(line)):
+                string_devider = ":"
+                for search in range(0, len(line)):
 
-                                            # index of : will change every line and file
-                                            # line not an array so this method is more
-                                            # efficient as .split() cannot be used
+                    # index of : will change every line and file
+                    # line not an array so this method is more
+                    # efficient as .split() cannot be used
 
-                                            if line[search] == string_devider:
+                    if line[search] == string_devider:
 
-                                                    #gets from up to:
-                                                    if line[:search] == name:
-
-                                                              highscore = int(line[search+1:])
-                                                              return highscore
-
-                                            else: pass #not found that iteration
-
-                 #Not found so add username and score in new line
-                  with open('./username.txt','a') as file: #append not truncate
-
-                          file.write('\n'+name+':'+'0')
-                          highscore = 0
+                        #gets from up to:
+                        if line[:search] == name:
+                          print('found',line[:search])
+                          highscore = int(line[search+1:])
                           return highscore
+
+                    else: pass #not found that iteration
+
+         #Not found so add username and score in new line
+          with open('./username.txt','a') as file: #append not truncate
+                  print('name OUT:',name)
+                  file.write('\n'+name+':'+'0')
+                  highscore = 0
+                  return highscore
 
         #does not exist so
         #create textfile and add username
@@ -466,46 +467,76 @@ def save_highscore(name,score):
         data = file.readlines()
         list = data
         #print(data)
-
+        details = []
         for row in range(len(data)):
-
-          details = data[row]
-
-          for i in range(len(details)):
-            if details[i] == string_devider and details[i]:
-
-              string_dev_pos = i
+        
+          if row == 0:
+                print('e_row rilter')
+                pass
+          else:
+              details.append( list[row] )
               
-              db_name = details[:string_dev_pos]          
+          
+              for i in range(len(list[row])):
+                
+                if list[row][i] == string_devider and list[row][i]:
 
-              if db_name == name:
-
-                data[row] = db_name+string_devider+str(score)+"\n"
+                  string_dev_pos = i              
+                  db_name = list[row][:string_dev_pos]
+                  
+                  if db_name == name:
+                    details.remove( list[row] )
+                    details.append('\n'+str(name)+':'+str(score))
+                                   
+        print('details',details)
 
             #now sort the list of names
         score_list = []
         name_list = []
-        for i in list:
-            #quickly parse data to be sent
-            #to sub in correct format
-             d = i.strip('\n').split(':')
-             if d != "":
-                 print('d:',d)
-                 name_list.append(d[0])
-                 score_list.append(d[1])
+        for i in details:
+
+            #removes blank entities
+            if ':' not in i:
+                print(': not found pass')
+                pass
+            else:
+                 print(i)
+                #quickly parse data to be sent
+                #to sub in correct format
+                
+                 d = i.strip('\n').split(':')
+                 try:
+                     print('IN FILE:',d)
+                     name_list.append(d[0])
+                     score_list.append(d[1])
+                 except IndexError:
+                     print('PASS AT:',d)
+             
+        print('IN SORT',name_list,score_list)
 
         #sort arrays
+        #reset data array so it can store
+        #new sorted data
+        data = []
         score_list,name_list = selection_sort(score_list,name_list)
         
-        for i in range(len(score_list)):
+        print('OUT SORT',name_list,score_list)
+        if len(score_list) == len(name_list):
+            print('LIST EQUALITY')
+        else:
+            print('S',len(score_list),'n',len(name_list))
+            
+        for i in range(len(name_list)):
             #created sorted array
-            data[i] = [str(name_list[i])+':'+str(score_list[i])]
+            data.append(str(name_list[i])+':'+str(score_list[i]))
+            print('appended',data[i])
       
     with open('username.txt','w') as file:
 
         #write to file
       for line in range(len(data)):
-        file.write(data[line][0]+"\n")
+        print('OUT FILE:',data[line])
+        file.write('\n'+data[line])
                    
 def display_leaderboard(name):
     #clear screen
@@ -1686,11 +1717,11 @@ def main_loop():
                             ########print()
                             ###for i in enemy_board: #####print(i)
 
-                    elif event.type == pygame.QUIT:
-                        #break loop
-                        running = False
-                        press_quit = running
-                        return press_quit
+            elif event.type == pygame.QUIT:
+                #break loop
+                running = False
+                press_quit = running
+                return press_quit
                     
             else: pass
 
@@ -1774,39 +1805,83 @@ def player_win():
             location2 = [( (screen_width//2) -150 ),  ( (screen_height//3) +120)]
             make_message(message2,WHITE,font_size,location2,centre=True)     
             
+    return end_game_menu()
+
+def end_game_menu():
+    global name
+    font_size = 22
+    message1 = "<Play Again>"
+    location1 = [473,410] 
+    make_message(message1,WHITE,font_size,location1)
+
+    message2 = "<Leaderboard>"
+    location2 = [644,410] 
+    make_message(message2,WHITE,font_size,location2)
+
+    message3 = "<Sign Out>"
+    location3 = [473,470] 
+    make_message(message3,WHITE,font_size,location3)
+
+    message4 = "<Quit>"
+    location4 = [644,470] 
+    make_message(message4,WHITE,font_size,location4)
+    
     while True:
         for event in pygame.event.get():
-			
+            try:
+                if event.pos[0] in range(location1[0],(location1[0]+140) ) and event.pos[1] in range(location1[1],(location1[1]+20)):              
+                    make_message(message1,YELLOW,font_size,location1)
+                else:
+                    make_message(message1,WHITE,font_size,location1)
+                    
+                if event.pos[0] in range(location2[0], (location2[0]+200) ) and event.pos[1] in range(location2[1],location2[1]+20):
+                    make_message(message2,YELLOW,font_size,location2)
+                else:
+                    make_message(message2,WHITE,font_size,location2)
+                    
+                if event.pos[0] in range(location3[0],(location3[0]+150) ) and event.pos[1] in range(location3[1],location3[1]+20):
+                    make_message(message3,YELLOW,font_size,location3)
+                else:
+                    make_message(message3,WHITE,font_size,location3)
+                    
+                if event.pos[0] in range(location4[0], (location4[0]+100) ) and event.pos[1] in range(location4[1],location4[1]+20):
+                    make_message(message4,YELLOW,font_size,location4)
+                else:
+                    make_message(message4,WHITE,font_size,location4)
+            except AttributeError: pass
+            
+            
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return False 
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                #print(event.pos) 
                 press_instructions(event.pos)
                 #print(event.pos)
-                if event.pos[0] in range(473,635) and event.pos[1] in range(410,500):
+                if event.pos[0] in range(location1[0],location1[0]+150) and event.pos[1] in range(location1[1],location1[1]+20):
                     #play again
                     #pygame.draw.rect(screen,(colour),([463,150,355,360]))
                     return True
-                elif event.pos[0] in range(644,804) and event.pos[1] in range(410,500):
-                    #view eadeboard
+                
+                elif event.pos[0] in range(location2[0], (location2[0]+200) ) and event.pos[1] in range(location2[1],location2[1]+20):
+                    #lview eadeboard
+                    
                     display_leaderboard(name)
+                    
                     bk_img = pygame.image.load("new_background.bmp").convert_alpha() 
                     screen.blit(bk_img,(0,0))
-                    return player_win()
+                    return player_loose()
                     
-                elif event.pos[0] in range(473,635) and event.pos[1] in range(502,540):
+                elif event.pos[0] in range(location3[0],location3[0]+150) and event.pos[1] in range(location3[1],location3[1]+20):
                     #switch user
-                    
                     name = get_input()
                     return True
-                    
-                elif event.pos[0] in range(644,804) and event.pos[1] in range(502,540):
+                elif event.pos[0] in range(location4[0],location4[0]+100) and event.pos[1] in range(location4[1],location4[1]+20):
                     pygame.quit()
                     return False
-                else: pass#print('e;se')
+                else: pass
 				
             else: pass
-        
 
 def player_loose():
     """
@@ -1867,7 +1942,7 @@ def player_loose():
             message4 = None
     else: 
             
-            message = "OOOOOOOOOOOHHH hard luck!"
+            message = "OUCH hard luck!"
             message2 = "You only lost to a robot."
             message3 = "You will clearly not survive "
             message4 = "the future. Good luck. "
@@ -1875,68 +1950,80 @@ def player_loose():
     if location:
             make_message(message,WHITE,font_size,location,centre=True)
     else:
-            location = [( (screen_width//2) -150 ),  ( (screen_height//3) +90)]
+            location = [( (screen_width//2) -150 ),  ( (screen_height//3) +100)]
             make_message(message,WHITE,font_size,location,centre=True)
 
-            location2 = [( (screen_width//2) -150 ),  ( (screen_height//3) +110)]
+            location2 = [( (screen_width//2) -150 ),  ( (screen_height//3) +120)]
             make_message(message2,WHITE,font_size,location2,centre=True)
 
             if message3 and message4:
-                location3 = [( (screen_width//2) -150 ),  ( (screen_height//3) +130)]
+                location3 = [( (screen_width//2) -150 ),  ( (screen_height//3) +140)]
                 make_message(message3,WHITE,font_size,location3,centre=True)
 
-                location4 = [( (screen_width//2) -150 ),  ( (screen_height//3) +150)]
+                location4 = [( (screen_width//2) -150 ),  ( (screen_height//3) +160)]
                 make_message(message4,WHITE,font_size,location4,centre=True)
-                        
-    while True:
-        for event in pygame.event.get():
-			
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return False 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                press_instructions(event.pos)
-                #print(event.pos)
-                if event.pos[0] in range(473,635) and event.pos[1] in range(410,500):
-                    #play again
-                    #pygame.draw.rect(screen,(colour),([463,150,355,360]))
-                    return True
-                elif event.pos[0] in range(644,804) and event.pos[1] in range(410,500):
-                    #lview eadeboard
-                    display_leaderboard(name)
-                    bk_img = pygame.image.load("new_background.bmp").convert_alpha() 
-                    screen.blit(bk_img,(0,0))
-                    return player_loose()
-                    
-                elif event.pos[0] in range(473,635) and event.pos[1] in range(502,540):
-                    #switch user
-                    name = get_input()
-                    return True
-                elif event.pos[0] in range(644,804) and event.pos[1] in range(502,540):
-                    pygame.quit()
-                    return False
-                else: pass
-				
-            else: pass
+    return end_game_menu()
+
+    
 
 def calculate_score(scen=0):
-    'calculates score based on'
-    'num guesses to sink ship'
+    '''calculates score based on
+       num guesses to sink ship.
+       if player takes too many guesses
+       then deduct points. Stops spam.
+    '''
+    
     
     global score
     #time.clock is float we want whole num
     Time = round(time.clock(),0)
-    
-    if clicked <=4:
-        score+= (20*scen)
-    elif clicked <5:
-        score += (15*scen)
-    elif clicked <6:
-        score += (10*scen)
-    elif clicked <8:
-        score += (5*scen)
+    if score <250:
+        if clicked <=2:
+            score+= (50*scen)
+        elif clicked <=3:
+            score += (45*scen)
+        elif clicked <=4:
+            score += (30*scen)
+        elif clicked <=5:
+            score += (20*scen)
+        elif clicked <=6:
+            score += (10*scen)
+        elif clicked <=7:
+            score += (5*scen)
+        #loose points if too many hits
+        elif clicked >7 and score >100:
+            score += (-10*scen)
+        else:
+            score += (2*scen)
+            
+    elif score <500:
+        if clicked <=2:
+            score+= (60*scen)
+        elif clicked <=3:
+            score += (50*scen)
+        elif clicked <=4:
+            score += (40*scen)
+        elif clicked <=5:
+            score += (30*scen)
+        else:
+            score += (-20*scen)
+
+    elif score <1000:
+        if clicked <=2:
+            score+= (70*scen)
+        elif clicked <=3:
+            score += (60*scen)
+        elif clicked <=5:
+            score += (50*scen)
+        else:
+            score += (-40*scen)
     else:
-        score += (2*scen)
+        if clicked <=2:
+            score+= (100*scen)
+        elif clicked <=4:
+            score += (80*scen)
+        else:
+            score += (-75*scen)     
 
     #show new score on screen live
     update_score_display(score)
