@@ -1,4 +1,4 @@
-# Battlefleets
+ # Battlefleets
 School project
 Badly Designed and even worsly implemented by Nathan Welsh
 
@@ -13,8 +13,8 @@ INSTALL INSTRCTONS:
 FUTURE RELEASE(priority ranked):
 
 1. Change buttons to ones similar to <back> on leaderboard
-   as they look better.
+   as they look better. IMPLEMENTED 01(02)/02/2018
 2. Online leaderboard so people can comapare scores livetime.
 3. Refined scoring system to stop their being a limit to 
-   highscores.
-
+   highscores. IMPLEMENTED 02/02/2018
+4. Turret which tracks mouse pos and fires.
