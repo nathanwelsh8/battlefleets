@@ -1,6 +1,5 @@
 # Battlefleets
-## School project
-#### Badly Designed and even worsly implemented by Nathan Welsh
+## School project -  #### Badly Designed and even worsly implemented by Nathan Welsh
 
 ## INSTALL INSTRCTONS:
 1. Get python 3.4 or +
