@@ -1,8 +1,8 @@
- # Battlefleets
+# Battlefleets
 ## School project
-### Badly Designed and even worsly implemented by Nathan Welsh
+#### Badly Designed and even worsly implemented by Nathan Welsh
 
-# INSTALL INSTRCTONS:
+## INSTALL INSTRCTONS:
 1. Get python 3.4 or +
 2. Youtube tutorial how to get pygame module
 3. Download latest version of pygame x.x.x
@@ -10,7 +10,7 @@
 
  <Steps 1 and 2 may take longer than step 3 & 4>
 
-# FUTURE RELEASE(priority ranked):
+## FUTURE RELEASE(priority ranked):
 
 1. Change buttons to ones similar to <back> on leaderboard
    as they look better. * IMPLEMENTED 01(02)/02/2018 *
