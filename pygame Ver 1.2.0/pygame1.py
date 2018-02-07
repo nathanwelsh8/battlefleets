@@ -1682,7 +1682,7 @@ def main_loop():
     running = True
     press_quit = True
 
-    #gamePlay_sound.play()
+    gamePlay_sound.play(-1)
     
     while running == True and user_sunk !=sum(num_to_generate) and enemy_sunk_ships !=sum(num_to_generate) and clock.tick(30):
         for event in pygame.event.get():
