@@ -18,5 +18,9 @@
 3. Refined scoring system to stop their being a limit to 
    highscores. IMPLEMENTED 02/02/2018
 4. Turret which tracks mouse pos and fires.
-5. Added Music, it's gonna hurt dem ears, play with sound muted and wait for 
-   futyre updates 
+5. Added Music, its now decent, cinematic. cool
+     probably because I own/made none of it. these guys made it
+     Ender Guney: https://www.youtube.com/watch?v=jMW7dLH9PJE
+     and Bensound https://www.bensound.com/royalty-free-music/track/epic
+     worth a look if you cheap like me and dont want to pay. 
+
