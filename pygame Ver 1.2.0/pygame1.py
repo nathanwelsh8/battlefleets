@@ -2033,14 +2033,14 @@ def calculate_score(scen=0):
         elif clicked <=5:
             score += (50*scen)
         else:
-            score += (-250*scen)
+            score += (-300*scen)
     else:
         if clicked <=2:
             score+= (100*scen)
         elif clicked <=4:
             score += (80*scen)
         else:
-            score += (-300*scen)     
+            score += (-400*scen)     
 
     #show new score on screen live
     update_score_display(score)
