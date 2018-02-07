@@ -18,13 +18,13 @@
 #               of the fleet.
 #
 #    Add highscore calculator 										  :Done 24/01/2018
-#    Stick highscore into textfile                                                                        :Done 26/01/18
+#    Stick highscore into textfile                                                                        :Done 26/01/2018
 #
 #    Leaderboard?... optional                                       :Done
 #
-#    Show different screens when all fleets sunk 					  :Done if user win
+#    Show different screens when all fleets sunk 					  :Done 02/02/2018
 #
-#    Add clock Speed
+#    Add clock Speed                                                :Done 04/01/2018
 #    Add sounds
 #    
 #
@@ -50,6 +50,12 @@ except ImportError:
 pygame.init()
 #initialise sound module
 pygame.mixer.init()
+
+#load sounds
+titleSound = pygame.mixer.Sound('titleSound.wav')
+gamePlay_sound = pygame.mixer.Sound('gamePlay.wav')
+playerWin_sound = pygame.mixer.Sound('playerWin.wav')
+playerLoose_sound = pygame.mixer.Sound('playerLoose.wav')
 
 ############################### Global Vars ###########################
 
@@ -1086,7 +1092,7 @@ def check_sink( team, row, col ):
     '''
         Maps out and checks the dimentions of the
         fleet and makes sure that there are no ships
-        to be sunk. It does this in a relativly similar
+        to be sunk. It does this in a similar
         way to the AI
         
         IF there is a sunk fleet it changes the value
@@ -1558,9 +1564,12 @@ def get_input():
         to delete chars as they are typed if they choose
         to. 
     """
+    global titleSound
     bk_img = pygame.image.load("new_background.bmp").convert_alpha() 
     screen.blit(bk_img,(0,0))
     pygame.display.flip()
+
+    titleSound.play(-1)
     
     #bottom lhs corner
     location = [100,550]
@@ -1619,6 +1628,7 @@ def get_input():
                                     #remove enter name message to make
                                     #room for uname and hscore
                                     pygame.draw.rect(screen,(ERR_COLOR),([100,550,400,25]))    
+                                    titleSound.stop()
                                     return name.title()
                                 
                                 else: pass                   
@@ -1671,6 +1681,8 @@ def main_loop():
     """
     running = True
     press_quit = True
+
+    #gamePlay_sound.play()
     
     while running == True and user_sunk !=sum(num_to_generate) and enemy_sunk_ships !=sum(num_to_generate) and clock.tick(30):
         for event in pygame.event.get():
@@ -2144,15 +2156,29 @@ def runGame():
         #returns true or false
         if  main_loop():
             #print(user_sunk)
+            gamePlay_sound.stop()
             pass
         else: run = False
 
         #decide what gameover screen to display
         if user_sunk == sum(num_to_generate):
+            playerWin_sound.play(-1)
             run = player_win()
-        
+
+            #when quit is pressed all pygame objects are destroyed
+            #this can raise error for trying to stop media objects
+            try:
+                playerWin_sound.stop()
+            except pygame.error:
+                pass
+            
         elif enemy_sunk_ships == sum(num_to_generate):
+            playerLoose_sound.play(-1)
             run = player_loose()
+            try:
+                playerLoose_sound.stop()
+            except pygame.error:
+                pass
 
         #else means player has quit game
         else: run = False
