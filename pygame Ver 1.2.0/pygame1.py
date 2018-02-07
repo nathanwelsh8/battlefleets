@@ -1063,8 +1063,8 @@ def check_user_event(mouse_pos):
                 # will update multiple times
                 # allows for larger deviation in scores
                 # agaisnt time
-                clicked = 0
                 calculate_score(2)
+                clicked = 0
 
             #quick fox for image undoes itself
         elif sea_board[row][col] == 2 or sea_board[row][col] == "M":
