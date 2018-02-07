@@ -48,6 +48,8 @@ except ImportError:
 # initialise pygame
 # IMPORTANT
 pygame.init()
+#initialise sound module
+pygame.mixer.init()
 
 ############################### Global Vars ###########################
 
@@ -115,6 +117,9 @@ ships_found = []
                             ### Sprite Vars ###
 
 spriteGroup = pygame.sprite.OrderedUpdates()
+
+#setup clock speed/FPS to improve performance
+clock = pygame.time.Clock()
 
 
 #----------------------------------sprite class------------------------------#
@@ -1667,7 +1672,7 @@ def main_loop():
     running = True
     press_quit = True
     
-    while running == True and user_sunk !=sum(num_to_generate) and enemy_sunk_ships !=sum(num_to_generate):
+    while running == True and user_sunk !=sum(num_to_generate) and enemy_sunk_ships !=sum(num_to_generate) and clock.tick(30):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 ########print()
@@ -1992,11 +1997,11 @@ def calculate_score(scen=0):
             score += (5*scen)
         #loose points if too many hits
         elif clicked >7 and score >100:
-            score += (-10*scen)
+            score += (-100*scen)
         else:
             score += (2*scen)
             
-    elif score <500:
+    elif score <1000:
         if clicked <=2:
             score+= (60*scen)
         elif clicked <=3:
@@ -2006,9 +2011,9 @@ def calculate_score(scen=0):
         elif clicked <=5:
             score += (30*scen)
         else:
-            score += (-20*scen)
+            score += (-200*scen)
 
-    elif score <1000:
+    elif score <1500:
         if clicked <=2:
             score+= (70*scen)
         elif clicked <=3:
@@ -2016,14 +2021,14 @@ def calculate_score(scen=0):
         elif clicked <=5:
             score += (50*scen)
         else:
-            score += (-40*scen)
+            score += (-250*scen)
     else:
         if clicked <=2:
             score+= (100*scen)
         elif clicked <=4:
             score += (80*scen)
         else:
-            score += (-75*scen)     
+            score += (-300*scen)     
 
     #show new score on screen live
     update_score_display(score)
@@ -2076,6 +2081,7 @@ def runGame():
     global ai_ship_guess
     global first_loop   
     global score
+    counter_init = 0
     
     run = True
     while run == True:
@@ -2128,8 +2134,10 @@ def runGame():
         enemy_board = generate_fleets(enemy_board,num_to_generate)
 
         #places sea_board onto display
-        update_interface()
-        update_interface() #call 2nd time, temp bug fix
+        while counter_init<=1 and clock.tick(30):
+            update_interface()
+            counter_init+=1
+        #update_interface() #call 2nd time, temp bug fix
     
         
         #<--- Call Mainloop --->
