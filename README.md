@@ -1,5 +1,5 @@
 # Battlefleets
-## School project -  
+## School project -  Please Beta Test
 #### Badly Designed and even worsly implemented by Nathan Welsh
 
 ## INSTALL INSTRCTONS:
