@@ -119,7 +119,9 @@ enemy_sunk_ships = 0
 num_to_generate = [4,3,3,2]
 ships_found = []
 
-
+#time1 = 0
+time1 = round(time.clock())
+time2 = 0
                             ### Sprite Vars ###
 
 spriteGroup = pygame.sprite.OrderedUpdates()
@@ -210,9 +212,9 @@ class ai_ship_guess:
         self.planevariables = {-1:-1,len(enemy_board[0]):-1}
         self.edges_found = []
         
-        ##print("Root:\t\t", self.root)
-        ##print("KB:\t\t", ai_ship_guess.knowledge_base)
-        ##print()
+        ###print("Root:\t\t", self.root)
+        ###print("KB:\t\t", ai_ship_guess.knowledge_base)
+        ###print()
 
     def update_planevars(self):
         #Called once and thereafter when orientation found, finds relevant plane variables from the KB
@@ -260,35 +262,35 @@ class ai_ship_guess:
                 guess_constant = self.root[1]
                 guess_variable = ( self.root[0] + modifier )
 
-            ##print("Possibility:",guess_orient,"mod", modifier, "guess", next_guess)
+            ###print("Possibility:",guess_orient,"mod", modifier, "guess", next_guess)
 
         result = enemy_board[next_guess[0]][next_guess[1]]
         ai_ship_guess.knowledge_base.append([ next_guess[0], next_guess[1], result ])
 
-        #print ("\nSelected result:\t", next_guess,"-->", ["Negative","Positive"][result])
-        #print ("Knowledge base:\t\t", ai_ship_guess.knowledge_base)
+        ##print ("\nSelected result:\t", next_guess,"-->", ["Negative","Positive"][result])
+        ##print ("Knowledge base:\t\t", ai_ship_guess.knowledge_base)
 
         if result == 0:
             if guess_orient == "h" and ( ([ self.root[0], ( self.root[1] - modifier ), 0 ] in ai_ship_guess.knowledge_base) or ( not (0<=(self.root[1]-modifier)<len(enemy_board[0])) ) ):
                 self.orientation = "v"
                 self.planeconstant = self.root[1]
                 self.planevariables[self.root[0]] = 1
-                #print ("Deduced orientation\t", self.orientation, "\nConst\t\t\t", self.planeconstant, "\nVariables\t\t", self.planevariables)
+                ##print ("Deduced orientation\t", self.orientation, "\nConst\t\t\t", self.planeconstant, "\nVariables\t\t", self.planevariables)
             elif guess_orient == "v" and ( ([ (self.root[0] - modifier), self.root[1] , 0 ] in ai_ship_guess.knowledge_base) or ( not (0<=(self.root[0]-modifier)<len(enemy_board[0])) ) ):
                 self.orientation = "h"
                 self.planeconstant = self.root[0]
                 self.planevariables[self.root[1]] = 1
-                #print ("Deduced orientation\t", self.orientation, "\nConst\t\t\t", self.planeconstant, "\nVariables\t\t", self.planevariables)
+                ##print ("Deduced orientation\t", self.orientation, "\nConst\t\t\t", self.planeconstant, "\nVariables\t\t", self.planevariables)
         elif result == 1:
             self.orientation = guess_orient
             self.planeconstant = guess_constant
             self.planevariables[ guess_variable ] = 1
             if self.orientation == "h":
                 self.planevariables[ self.root[1] ] = 1
-                #print ("Deduced orientation\t", self.orientation, "\nConst\t\t\t", self.planeconstant, "\nVariables\t\t", self.planevariables)
+                ##print ("Deduced orientation\t", self.orientation, "\nConst\t\t\t", self.planeconstant, "\nVariables\t\t", self.planevariables)
             elif self.orientation == "v":
                 self.planevariables[ self.root[0] ] = 1
-                #print ("Deduced orientation\t", self.orientation, "\nConst\t\t\t", self.planeconstant, "\nVariables\t\t", self.planevariables)
+                ##print ("Deduced orientation\t", self.orientation, "\nConst\t\t\t", self.planeconstant, "\nVariables\t\t", self.planevariables)
 
 
         return next_guess[0], next_guess[1]
@@ -307,16 +309,16 @@ class ai_ship_guess:
         #encountered_edges = []
         next_guess_var = None
 
-        ##print()
+        ###print()
 
         while next_guess_var == None:
             progression_point += check_direction
-            #print ("\nFound Edges:\t\t", self.edges_found, "\nPP:\t\t\t", progression_point,"\nDirection:\t\t", check_direction) #"\nEncountered_edges:\t", encountered_edges, "\nFound Edges:\t\t", self.edges_found, "\nPP:\t\t\t", progression_point,"\nDirection:\t\t", check_direction
+            ##print ("\nFound Edges:\t\t", self.edges_found, "\nPP:\t\t\t", progression_point,"\nDirection:\t\t", check_direction) #"\nEncountered_edges:\t", encountered_edges, "\nFound Edges:\t\t", self.edges_found, "\nPP:\t\t\t", progression_point,"\nDirection:\t\t", check_direction
 
             #if self.planevariables.has_key(progression_point):
             if progression_point in self.planevariables.keys():
                 
-                #print ("Value:\t\t\t", self.planevariables[progression_point], "- Exists in KB")
+                ##print ("Value:\t\t\t", self.planevariables[progression_point], "- Exists in KB")
                 if self.planevariables[progression_point] == 0 or self.planevariables[progression_point] == -1 :
                     
                     # 0 signifies empty sea ie. edge of ship; -1
@@ -325,7 +327,7 @@ class ai_ship_guess:
                     
                     if not ( check_direction in self.edges_found ):
                         self.edges_found.append(check_direction)
-                    #print ("\n!- Direction change -!\nFound Edges:\t\t", self.edges_found)#Encountered_edges:\t", encountered_edges,
+                    ##print ("\n!- Direction change -!\nFound Edges:\t\t", self.edges_found)#Encountered_edges:\t", encountered_edges,
                                                                                           #"\nFound Edges:\t\t", self.edges_found
                     if len(self.edges_found) == 2:
                         
@@ -335,12 +337,12 @@ class ai_ship_guess:
                     check_direction = -1 * check_direction
 
             elif not ( 0 <= progression_point < len(enemy_board) ):
-                #print ("!- Out point at", progression_point, "-!")
+                ##print ("!- Out point at", progression_point, "-!")
                 self.planevariables[progression_point] = -1
                 #encountered_edges += 1
                 if not ( check_direction in self.edges_found ):
                     self.edges_found.append(check_direction)
-                #print ("\n!- Direction change -!\nFound Edges:\t\t", self.edges_found) #Encountered_edges:\t", encountered_edges, "\nFound Edges:\t\t", self.edges_found
+                ##print ("\n!- Direction change -!\nFound Edges:\t\t", self.edges_found) #Encountered_edges:\t", encountered_edges, "\nFound Edges:\t\t", self.edges_found
                 if len(self.edges_found) == 2:
                     #This prevents infinite looping
                     #Respond -1 to indicate ship must be sunk
@@ -348,7 +350,7 @@ class ai_ship_guess:
                 check_direction = -1 * check_direction
 
             else:
-                #print ("Variable:\t\t", progression_point, "- Not in KB, submit")
+                ##print ("Variable:\t\t", progression_point, "- Not in KB, submit")
                 next_guess_var = progression_point
 
         if self.orientation == "h":
@@ -356,7 +358,7 @@ class ai_ship_guess:
         elif self.orientation == "v":
             next_guess = [progression_point, self.planeconstant]
 
-        #print ("\nGuess:\t\t\t", next_guess)
+        ##print ("\nGuess:\t\t\t", next_guess)
 
         #add results to knowledge base for future use
         result = enemy_board[next_guess[0]][next_guess[1]]
@@ -364,9 +366,9 @@ class ai_ship_guess:
 
         self.planevariables[progression_point] = result
 
-        #print ("Result:\t\t\t", next_guess,"-->", ["Negative","Positive"][result])
-        #print ("\nKnowledge base:\t\t", ai_ship_guess.knowledge_base)
-        #print ("Variable set:\t\t", self.planevariables)
+        ##print ("Result:\t\t\t", next_guess,"-->", ["Negative","Positive"][result])
+        ##print ("\nKnowledge base:\t\t", ai_ship_guess.knowledge_base)
+        ##print ("Variable set:\t\t", self.planevariables)
 
         if result == 0:
             self.edges_found.append(check_direction)
@@ -375,7 +377,7 @@ class ai_ship_guess:
                 #encountered_edges += 1
                 if not ( check_direction in self.edges_found ):
                     self.edges_found.append(check_direction)
-                #print ("\n!- Next in ship plane is edge -!\nFound Edges:\t\t", self.edges_found) #Encountered_edges:\t", encountered_edges, "\nFound Edges:\t\t", self.edges_found
+                ##print ("\n!- Next in ship plane is edge -!\nFound Edges:\t\t", self.edges_found) #Encountered_edges:\t", encountered_edges, "\nFound Edges:\t\t", self.edges_found
                 #if len(self.edges_found) == 2:
                 #    #This prevents infinite looping
                 #    #Respond -1 to indicate ship must be sunk
@@ -396,7 +398,7 @@ def get_highscore(name):
         # score of 0.
         # data is formatted like so:   username:highscore
         '''
-        print('name IN:',name)
+        #print('name IN:',name)
     #will raise error if not exist
         try:
           with open('username.txt','r') as file:
@@ -413,7 +415,7 @@ def get_highscore(name):
 
                         #gets from up to:
                         if line[:search] == name:
-                          print('found',line[:search])
+                          #print('found',line[:search])
                           highscore = int(line[search+1:])
                           return highscore
 
@@ -421,7 +423,7 @@ def get_highscore(name):
 
          #Not found so add username and score in new line
           with open('./username.txt','a') as file: #append not truncate
-                  print('name OUT:',name)
+                  #print('name OUT:',name)
                   file.write('\n'+name+':'+'0')
                   highscore = 0
                   return highscore
@@ -439,18 +441,21 @@ def get_highscore(name):
 
 #these are used for saving highscore
 def get_largest(list, start):
+    
     '''
     helper method to find the largest 
     number in list starting from 
-    a specific index'''
+    a specific index
+    '''
 
     #say the number of the index is the largest
-    small = start
+    large = start
     for i in range(start +1, len(list)):
-        if list[i]>list[small]:
-            #smaller num found, update index
-            small = i
-    return small 
+        if int(list[i])>int(list[large]):
+            #largeer num found, update index
+            large = i
+            ##print('large',list[large])
+    return large 
 
 def selection_sort(list,list2):
     '''
@@ -461,12 +466,12 @@ def selection_sort(list,list2):
     #call get largest function which 
     #finds the largest value in the list 
         largest = get_largest(list,item)
-            
         if largest != item:
         #swap current element with 
-        #largest if any
+        #largest if any            
             list[largest],list[item]=list[item],list[largest]
             list2[largest],list2[item] = list2[item],list2[largest]
+            
     return list,list2
 
 
@@ -477,12 +482,12 @@ def save_highscore(name,score):
 
         data = file.readlines()
         list = data
-        #print(data)
+        ##print(data)
         details = []
         for row in range(len(data)):
         
           if row == 0:
-                print('e_row rilter')
+                #print('e_row rilter')
                 pass
           else:
               details.append( list[row] )
@@ -498,32 +503,31 @@ def save_highscore(name,score):
                   if db_name == name:
                     details.remove( list[row] )
                     details.append('\n'+str(name)+':'+str(score))
-                                   
-        print('details',details)
-
-            #now sort the list of names
+     
+        #now sort the list of names
         score_list = []
         name_list = []
         for i in details:
 
             #removes blank entities
             if ':' not in i:
-                print(': not found pass')
+                #print(': not found pass')
                 pass
             else:
-                 print(i)
+                 #print(i)
                 #quickly parse data to be sent
                 #to sub in correct format
                 
                  d = i.strip('\n').split(':')
                  try:
-                     print('IN FILE:',d)
+                     #print('IN FILE:',d)
                      name_list.append(d[0])
                      score_list.append(d[1])
                  except IndexError:
-                     print('PASS AT:',d)
+                     pass
+                     #print('PASS AT:',d)
              
-        print('IN SORT',name_list,score_list)
+        #print('IN SORT',name_list,score_list)
 
         #sort arrays
         #reset data array so it can store
@@ -531,7 +535,7 @@ def save_highscore(name,score):
         data = []
         score_list,name_list = selection_sort(score_list,name_list)
         
-        print('OUT SORT',name_list,score_list)
+        ##print('OUT SORT',name_list,score_list)
         if len(score_list) == len(name_list):
             print('LIST EQUALITY')
         else:
@@ -540,13 +544,13 @@ def save_highscore(name,score):
         for i in range(len(name_list)):
             #created sorted array
             data.append(str(name_list[i])+':'+str(score_list[i]))
-            print('appended',data[i])
+            #print('appended',data[i])
       
     with open('username.txt','w') as file:
 
         #write to file
       for line in range(len(data)):
-        print('OUT FILE:',data[line])
+        #print('OUT FILE:',data[line])
         file.write('\n'+data[line])
                    
 def display_leaderboard(name):
@@ -629,7 +633,7 @@ def display_leaderboard(name):
             #click event
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 press_instructions(event.pos)
-                print(event.pos)
+                #print(event.pos)
                 
                 if event.pos[0] in range(596,778) and event.pos[1] in range(420,440):
                     #play again
@@ -791,11 +795,11 @@ def new_validate( board, orient, x_pos, y_pos, length, sign ):
         
         #Make sure fleet in boards dimentions
         if 0 <= x_pos+(sign*length) < len(board[0]):
-            ##print("FITS IN BOARD")
+            ###print("FITS IN BOARD")
             pass
         else:
             #fleet is outwith board
-            ##print("DOES NOT FIT IN BOARD")
+            ###print("DOES NOT FIT IN BOARD")
             return False
 
         #Clear of other boats?
@@ -806,30 +810,30 @@ def new_validate( board, orient, x_pos, y_pos, length, sign ):
             except IndexError:
                 #okay to recieve index error as it means
                 #must be at edge of grid where no other fleets can be
-                ##print("EDGE OF GRID ABOVE -PASS")
+                ###print("EDGE OF GRID ABOVE -PASS")
                 pass
             else:
                 if up == 1:
                     #fleet above attempted location
-                    ##print("CONFLICT ABOVE BOAT")
+                    ###print("CONFLICT ABOVE BOAT")
                     return False
 
             #Check on
             if board[y_pos][x_pos+(offset*sign)] == 1:
                 #fleet above attempted location
-                ##print("CONFLICT ON BOAT")
+                ###print("CONFLICT ON BOAT")
                 return False
 
             #Check below area
             try:
                 dn = board[y_pos+1][x_pos+(offset*sign)]
             except IndexError:
-                ##print("EDGE OF GRID BELOW -PASS")
+                ###print("EDGE OF GRID BELOW -PASS")
                 pass
             else:
                 if dn == 1:
                     #fleet below attempted location
-                    ##print("CONFLICT BELOW BOAT")
+                    ###print("CONFLICT BELOW BOAT")
                     return False
 
         #Check either side of the fleet
@@ -840,7 +844,7 @@ def new_validate( board, orient, x_pos, y_pos, length, sign ):
         else:
             if lft == 1:
                 #Theres a fleet left of attemped location
-                ##print("CONFLICT AT LEFT")
+                ###print("CONFLICT AT LEFT")
                 return False
 
         try:
@@ -849,13 +853,13 @@ def new_validate( board, orient, x_pos, y_pos, length, sign ):
             
             #not on board so
             #ships at edge
-            ##print("current pos +1 outwith board \nso ship is on an edge\npass")
+            ###print("current pos +1 outwith board \nso ship is on an edge\npass")
             pass
         
         else:
             if rgt == 1:
                 #Theres a fleet right of attempted location
-                ##print("CONFLICT AT RIGHT")
+                ###print("CONFLICT AT RIGHT")
                 return False
 
     else:
@@ -866,7 +870,7 @@ def new_validate( board, orient, x_pos, y_pos, length, sign ):
             pass
         else:
             #fleet is outwith board
-            ##print("OUTWITH BOARD")
+            ###print("OUTWITH BOARD")
             return False
 
 
@@ -880,13 +884,13 @@ def new_validate( board, orient, x_pos, y_pos, length, sign ):
             else:
                 if lf == 1:
                     #Theres a fleet left of selected location
-                    ##print("CONFLICT LEFT OF BOAT")
+                    ###print("CONFLICT LEFT OF BOAT")
                     return False
 
             #Check on
             if board[y_pos+(offset*sign)][x_pos] == 1:
                 #Theres a fleet at selected location
-                ##print("CONFLICT ON BOAT")
+                ###print("CONFLICT ON BOAT")
                 return False
 
             #Check right
@@ -897,7 +901,7 @@ def new_validate( board, orient, x_pos, y_pos, length, sign ):
             else:
                 if rt == 1:
                     #Theres a fleet right of selected location
-                    ##print("CONFLICT RIGHT OF BOAT")
+                    ###print("CONFLICT RIGHT OF BOAT")
                     return False
 
         #Check either end of the fleet
@@ -913,7 +917,7 @@ def new_validate( board, orient, x_pos, y_pos, length, sign ):
         else:
             if top == 1:
                 #Theres a fleet at one end of attempted position
-                ##print("CONFLICT AT END")
+                ###print("CONFLICT AT END")
                 return False
 
         try:
@@ -923,9 +927,9 @@ def new_validate( board, orient, x_pos, y_pos, length, sign ):
         else:
             if btm == 1:
                 #Theres a fleet at the other end of attempted position
-                ##print("CONFLICT AT END")
+                ###print("CONFLICT AT END")
                 return False
-    ##print('VALIDATION PASSED')
+    ###print('VALIDATION PASSED')
     return True
 
 def generate_fleets(board,fleet=[2,3,3,4]): #define fleet as passed in as it improves efficiency
@@ -935,38 +939,38 @@ def generate_fleets(board,fleet=[2,3,3,4]): #define fleet as passed in as it imp
             vertically or horizontally depending on a random selection.
     """
     current_fleet = 0
-    ##print('\n\n\\t\tgenerating...\n\n')
+    ###print('\n\n\\t\tgenerating...\n\n')
     while True: #repeats untill 4 fleets placed
 
-        ##print("\n")
-        ##print('\n\n')
+        ###print("\n")
+        ###print('\n\n')
         orient = randint(0,1) #0= horizontal 1= vertical
         if orient == 1:
-            ##print("Vertical")
+            ###print("Vertical")
             pass
         else:
-            ##print("Horizontal")
+            ###print("Horizontal")
             pass
 
         #generate x position
         x_pos = randrange(0,len(board[0]))
-        ##print('X',x_pos)
+        ###print('X',x_pos)
 
         #generate y position
         y_pos = randrange(0,len(board))
-        ##print('Y',y_pos)
+        ###print('Y',y_pos)
 
         #Generate position for direction(left or right)
         sign = choice([-1,1])
-        ##print("Sign:",sign)
+        ###print("Sign:",sign)
 
                 #length of fleet selected
         length = fleet[current_fleet]
-        ##print("Length",length)
+        ###print("Length",length)
 
                 #if fleet passes validation criteria
 
-        #for i in board: ##print(i)
+        #for i in board: ###print(i)
 
         if new_validate( board, orient, x_pos, y_pos, length, sign ):
 
@@ -988,7 +992,7 @@ def generate_fleets(board,fleet=[2,3,3,4]): #define fleet as passed in as it imp
             else:
                 current_fleet += 1
     #for i in board:
-        ##print(i)
+        ###print(i)
         
     return board
 
@@ -998,11 +1002,11 @@ if False:
 #   if ships_found:
 #       for i in ships_found:
 #           x_pos,y_pos = i[0],i[1]
-#           ##print("\nUSING HIT SHIP")
+#           ###print("\nUSING HIT SHIP")
 #           return x_pos,y_pos,sign
 #   else:
 #       x_pos,y_pos = randrange(0,len(enemy_board[0])),randrange(0,len(enemy_board[0]))
-#       ##print("\nUSING RANDOM COORDS")
+#       ###print("\nUSING RANDOM COORDS")
 #       return x_pos,y_pos,sign
     pass
         
@@ -1035,12 +1039,12 @@ def check_user_event(mouse_pos):
 
         #gets tile clicked on by user
         col = (position_mouse[0] -C)  // ((WIDTH + MARGIN))
-            ########print()
-            ########print('mouse pos x',position_mouse[0],'area:', (position_mouse[0]) // ((WIDTH + MARGIN)))
+            #########print()
+            #########print('mouse pos x',position_mouse[0],'area:', (position_mouse[0]) // ((WIDTH + MARGIN)))
         
         row = (position_mouse[1] -C2) // ((HEIGHT + MARGIN))
-            ########print('mouse pos y',position_mouse[1]-C2,'area:', (position_mouse[1]-C2) // ((WIDTH + MARGIN)))
-            ########print()
+            #########print('mouse pos y',position_mouse[1]-C2,'area:', (position_mouse[1]-C2) // ((WIDTH + MARGIN)))
+            #########print()
             
             
         #if tile contains fleet undiscovered
@@ -1054,9 +1058,10 @@ def check_user_event(mouse_pos):
             sea_board[row][col] = 2
             
             user_sunk +=1
-            clicked += 1
+            
             calculate_score(1)
 
+            temp_count = 0
             for sink_coord in check_sink( 0, row, col ):
                 sea_board[sink_coord[0]][sink_coord[1]] = 3
 
@@ -1064,9 +1069,13 @@ def check_user_event(mouse_pos):
                 # allows for larger deviation in scores
                 # agaisnt time
                 calculate_score(2)
+                temp_count +=1
+                
+            if temp_count !=0:
                 clicked = 0
+                return               
 
-            #quick fox for image undoes itself
+        
         elif sea_board[row][col] == 2 or sea_board[row][col] == "M":
              raise IndexError
 
@@ -1075,17 +1084,19 @@ def check_user_event(mouse_pos):
 
             #has missed ship
             sea_board[row][col] = "M"
-            ########print('MISS')
+            
         else:
+            
             pass
             
-        ### #####print(chosen)
+    
 
     #''' exceuted if user does not select a tile of grid'''
     except IndexError:
         pass
-        #####print('Error not selected grid')
-    
+        ######print('Error not selected grid')
+    clicked +=1
+    #print(clicked)
     return
 
 def check_sink( team, row, col ):
@@ -1146,17 +1157,17 @@ def check_sink( team, row, col ):
     edgepos = []
     twos_pos = []
     
-    #print ("ROW:", row)
-    #print ("COL:", col)
-    #print ("ORIENT:", orient)
-    #print ("SHIPROW:", ship_plane)
+    ##print ("ROW:", row)
+    ##print ("COL:", col)
+    ##print ("ORIENT:", orient)
+    ##print ("SHIPROW:", ship_plane)
         
     while True:
-        #print ("PREPROGRESS:", progression_point)
+        ##print ("PREPROGRESS:", progression_point)
         progression_point += check_direction
-        #print ("PROGRESS:", progression_point)
+        ##print ("PROGRESS:", progression_point)
         try:
-            #print ("VALUE:", ship_plane[progression_point])
+            ##print ("VALUE:", ship_plane[progression_point])
             if ship_plane[progression_point] == 0 or ship_plane[progression_point] == "M":
                 raise IndexError
                     
@@ -1238,7 +1249,7 @@ def ai_guess():
         y_pos = random.randrange(0,len(enemy_board[0]))
         picked_value = enemy_board[x_pos][y_pos]
     
-        ##print(x_pos,y_pos,picked_value)
+        ###print(x_pos,y_pos,picked_value)
 
         if picked_value == 1:
             ship_ai = ai_ship_guess(x_pos,y_pos)
@@ -1248,7 +1259,7 @@ def ai_guess():
             #fix added in main loop 01/02/2018
             
             if enemy_sunk_ships == 12:
-                ##print("BAD SHIT!")
+                ###print("BAD SHIT!")
                 return -2,-2########
             
     return x_pos, y_pos
@@ -1261,8 +1272,8 @@ def check_ai_event(row, col):
     
     if enemy_board[row][col] in [ "M", 2, 3 ]:
         pass
-        #print used in testing to solve AI reselecting used tile bug
-        #print ("DAFUQ:", row, ",", col, ":", enemy_board[row][col])
+        ##print used in testing to solve AI reselecting used tile bug
+        ##print ("DAFUQ:", row, ",", col, ":", enemy_board[row][col])
 
     elif enemy_board[row][col] == 1:
         enemy_board[row][col] = 2
@@ -1271,7 +1282,7 @@ def check_ai_event(row, col):
         try:
             sinks, edgez = check_sink( 1, row, col )
             for sink_coord in sinks:
-                #print ("3 at", row, ",", col)
+                ##print ("3 at", row, ",", col)
                 enemy_board[sink_coord[0]][sink_coord[1]] = 3
                 
             for edge_coord in edgez:
@@ -1306,26 +1317,26 @@ if False:
 #def AI_process(x_pos,y_pos,sign):
 #
 #     #this will the process used to determine the AI selected area
-#     ##print("\n")
-#     ##print("X:",x_pos)
-#     ##print("Y:",y_pos)    
-#     ##print("SIGN:",sign)
+#     ###print("\n")
+#     ###print("X:",x_pos)
+#     ###print("Y:",y_pos)    
+#     ###print("SIGN:",sign)
 #     sign_old = sign
 #     sign = choice([-1,1])
-#     ##print("NEW SIGN:",sign)
-#     ##print("Board Location Xy:",enemy_board[x_pos][y_pos],"Sign",sign)
+#     ###print("NEW SIGN:",sign)
+#     ###print("Board Location Xy:",enemy_board[x_pos][y_pos],"Sign",sign)
 #     
 #     if 0 <= x_pos <= len(enemy_board[0]) and  0 <= y_pos <= len(enemy_board[0]):
-#         ##print("fits on board")
+#         ###print("fits on board")
 #         
 #         if enemy_board[x_pos][y_pos] == 1:
-#             ##print("CHOSE 1, FOUND A SHIP, HIT")
+#             ###print("CHOSE 1, FOUND A SHIP, HIT")
 #             #if chosen is a fleet
 #             
 #             enemy_board[x_pos][y_pos] +=1
 #             
 #             if ships_found:
-#                 ##print("Value removed")
+#                 ###print("Value removed")
 #                 try: 
 #                     ships_found.remove([x_pos-sign_old,y_pos])
 #                 except ValueError: 
@@ -1338,7 +1349,7 @@ if False:
 #                             try:
 #                                 ships_found.remove([x_pos+sign_old,y_pos])
 #                             except ValueError:
-#                                 ##print("Value To be removed not found")
+#                                 ###print("Value To be removed not found")
 #                                 pass
 #                         
 #             ships_found.append([x_pos,y_pos])
@@ -1349,31 +1360,31 @@ if False:
 #             #if chosen is already a hit ship
 #             
 #             if enemy_board[x_pos+1*sign][y_pos] ==2:
-#                 ##print("LOOK TO SEE IF SUNK LEFT OR RIGHT (up/down)")
+#                 ###print("LOOK TO SEE IF SUNK LEFT OR RIGHT (up/down)")
 #                 #if ship left or right thats hit
 #                 return AI_process(x_pos+1*sign,y_pos,sign)
 #                
 #             elif enemy_board[x_pos][y_pos+1*sign] ==2:
 #                 #if ship up or down thats hit.
-#                 ##print("LOOK TO SEE IF UP / DOWN (up/down)")
+#                 ###print("LOOK TO SEE IF UP / DOWN (up/down)")
 #                 return AI_process(x_pos,y_pos+1*sign,sign)
 #            
 #             else:
-#                 ##print("CANNOT FIND SHIPS IN X/Y, Guessing Random")
+#                 ###print("CANNOT FIND SHIPS IN X/Y, Guessing Random")
 #                 if sign == 1:
 #                     #guess left/right
-#                     ##print("GUESSING LEFT/RIGHT")
+#                     ###print("GUESSING LEFT/RIGHT")
 #                     return AI_process(x_pos+1*choice([-1,1]),y_pos,sign)
 #                 else:
 #                     #guess up/down
-#                     ##print("GUESSING UP/DOWN")
+#                     ###print("GUESSING UP/DOWN")
 #                     return AI_process(x_pos,y_pos+1*choice([-1,1]),sign)
 #                
 #         elif enemy_board[x_pos][y_pos] == 'M' or enemy_board[x_pos][y_pos] == 3:
 #                       
 #             #if chosen is a previous miss or sunk fleet
 #                       
-#             ##print("CHOSE M, RESELECTING")
+#             ###print("CHOSE M, RESELECTING")
 #             x_pos,y_pos,sign = found_ships()
 #             return AI_process(x_pos,y_pos,sign)
 #
@@ -1381,15 +1392,15 @@ if False:
 #             
 #             #if chosen does not contain ship
 #             enemy_board[x_pos][y_pos] = 'M'
-#             ##print("SHIP MISSED")
+#             ###print("SHIP MISSED")
 #             return
 #         else:
 #             # use for stoping infinate loops and bugs,
 #             # does not terminate but here for the safe side
-#             ##print("ELSE WAS TRIGGERED, RETURNING...")
+#             ###print("ELSE WAS TRIGGERED, RETURNING...")
 #             return
 #     else:
-#         ##print("WEEEE")
+#         ###print("WEEEE")
 #         if x_pos <0:
 #             return AI_process(x_pos+1,y_pos,-1*sign_old)
 #             
@@ -1406,30 +1417,30 @@ if False:
 #  try:
 #      
 #      if enemy_board[x_pos+increment][y_pos] == 2:
-#           ##print("INCREMENTING")
+#           ###print("INCREMENTING")
 #           increment +=1
 #
 #      elif enemy_board[x_pos+increment][y_pos] != 2:
 #
 #           if enemy_board[x_pos+increment][y_pos] == 'M':
-#               ##print("MISS RECURSIVE WITH NEW COORDS")
+#               ###print("MISS RECURSIVE WITH NEW COORDS")
 #               x_pos = randrange(0,len(enemy_board[0]))
 #               y_pos = randrange(0,len(enemy_board[0]))
 #               return AI_process(x_pos,y_pos)
 #
 #           elif enemy_board[x_pos+increment][y_pos] == 3:
-#               ##print("sUNK FLEET RECURSIVE NEW COORDS")
+#               ###print("sUNK FLEET RECURSIVE NEW COORDS")
 #               x_pos = randrange(0,len(enemy_board[0]))
 #               y_pos = randrange(0,len(enemy_board[0]))
 #               return AI_process(x_pos,y_pos)
 #
 #           elif enemy_board[x_pos+increment][y_pos] == 0:
-#              ##print("EMPTY SEA UPDATE TO SHOW MISS")
+#              ###print("EMPTY SEA UPDATE TO SHOW MISS")
 #              enemy_board[x_pos+increment][y_pos] = 'M'
 #              break
 #
 #           else:
-#               ##print("MAKE EQUALLS HIT")
+#               ###print("MAKE EQUALLS HIT")
 #               enemy_board[x_pos+increment][y_pos] ==2
 #               break
 #  except ValueError: pass
@@ -1551,7 +1562,7 @@ def press_instructions(eventpos):
         'checks if instructions has been pressed'
         posX,posY = eventpos
         if posX  >= (screen_width-width) and posY >= (screen_height-height):
-                ##print('LOADING INTERFACE...')
+                ###print('LOADING INTERFACE...')
                 load_instructions_interface()
 
          
@@ -1560,7 +1571,7 @@ def press_instructions(eventpos):
 def get_input():
     """
         Allows for user input livetime char by char
-        filters out illegal chars and aloows for user
+        filters out illegal chars and allows for user
         to delete chars as they are typed if they choose
         to. 
     """
@@ -1601,10 +1612,10 @@ def get_input():
                     #if not key press
 
                     else:
-                            ########print("GOT KEY",chr(event.key))
+                            #########print("GOT KEY",chr(event.key))
                             try:
                                  #filters out non compatibles
-                                 #print (event.key)
+                                 ##print (event.key)
                                  if event.key in range(97,122) or event.key in range(48,57) or event.key in [8,13,32]:
                                     key =  chr(event.key)
                                  else: 
@@ -1687,8 +1698,8 @@ def main_loop():
     while running == True and user_sunk !=sum(num_to_generate) and enemy_sunk_ships !=sum(num_to_generate) and clock.tick(30):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
-                ########print()
-                ########print("MOUSE CLICK")
+                #########print()
+                #########print("MOUSE CLICK")
                 '''
                 Checks if position of fleet on map has been clicked by mouse.
                 returns true if mouse touches fleet
@@ -1699,40 +1710,43 @@ def main_loop():
                 
                     ' PLAYER TURN '                    
                     
-                    #print(event.pos)
+                    ##print(event.pos)
                     col = (event.pos[0] -C)  // ((WIDTH + MARGIN))
                     row = (event.pos[1] -C2) // ((HEIGHT + MARGIN))
 
                     #quick check to make sure user click board
-                    if sea_board[row][col] in [0,1]:
-                        check_user_event(event.pos)
-                        press_instructions(event.pos)
+                    try:
+                        if sea_board[row][col] in [0,1]:
+                            check_user_event(event.pos)
+                            press_instructions(event.pos)
 
-                        ' END PLAYER TURN '
-                        
-                        update_interface()
-                        
-                        ' COMPUTER TURN '
-                        
-                        #Call AI_process when user has selected tile on board
-                        if user_sunk < sum(num_to_generate):
-                            update_kb()
-                            #set selection of vars
-                            aiturn = ai_guess()
-                            check_ai_event(aiturn[0],aiturn[1])
-
-                            #for row in enemy_board: ##print(row)
-                            
-                            #x_pos,y_pos,sign = found_ships()
-                            #AI_process(x_pos,y_pos,sign)
-                            
-                            ' END COMPUTER TURN '
+                            ' END PLAYER TURN '
                             
                             update_interface()
+                            
+                            ' COMPUTER TURN '
+                            
+                            #Call AI_process when user has selected tile on board
+                            if user_sunk < sum(num_to_generate):
+                                update_kb()
+                                #set selection of vars
+                                aiturn = ai_guess()
+                                check_ai_event(aiturn[0],aiturn[1])
 
-                            ###for i in sea_board: #####print(i)
-                            ########print()
-                            ###for i in enemy_board: #####print(i)
+                                #for row in enemy_board: ###print(row)
+                                
+                                #x_pos,y_pos,sign = found_ships()
+                                #AI_process(x_pos,y_pos,sign)
+                                
+                                ' END COMPUTER TURN '
+                                
+                                update_interface()
+
+                                ###for i in sea_board: ######print(i)
+                                #########print()
+                                ###for i in enemy_board: ######print(i)
+                    except IndexError:
+                        pass
 
             elif event.type == pygame.QUIT:
                 #break loop
@@ -1760,6 +1774,9 @@ def player_win():
     """
     
     global name
+    global time2
+    time2 = round(time.clock())
+    #print('T2',time2)
     #clear screen#
     #pygame.draw.rect(screen,(colour),([0,0,screen_width//,screen_height+100]))
     pygame.display.flip()
@@ -1786,7 +1803,8 @@ def player_win():
     make_message("Highscore:            "+str(get_highscore(name)),WHITE,font_size,location)
     
     location = location = [screen_width//2-150,screen_height//3 +60]
-    make_message("Elapsed Time:         "+str(int(round(time.clock(),0)))+str("s"),WHITE,font_size,location)
+    #print(time2,time1)
+    make_message("Elapsed Time:         "+str(int(round(time2-time1,0)))+str("s"),WHITE,font_size,location)
 	
     #var messages
     location = None
@@ -1826,6 +1844,8 @@ def player_win():
 
 def end_game_menu():
     global name
+    global time2
+    
     font_size = 22
     message1 = "<Play Again>"
     location1 = [473,410] 
@@ -1872,9 +1892,9 @@ def end_game_menu():
                 pygame.quit()
                 return False 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                #print(event.pos) 
+                ##print(event.pos) 
                 press_instructions(event.pos)
-                #print(event.pos)
+                ##print(event.pos)
                 if event.pos[0] in range(location1[0],location1[0]+150) and event.pos[1] in range(location1[1],location1[1]+20):
                     #play again
                     #pygame.draw.rect(screen,(colour),([463,150,355,360]))
@@ -1909,7 +1929,9 @@ def player_loose():
         show game stats and save highscore
         if necessary.
     """
-    global name    
+    global name
+    global time2
+    time2 = round(time.clock())
     #clear screen#
     #pygame.draw.rect(screen,(colour),([0,0,screen_width//,-screen_height+100]))
     pygame.display.flip()
@@ -1920,8 +1942,6 @@ def player_loose():
 	#you win 
     location = [screen_width//2-150,screen_height//4]
     make_message("DEFEATED!",RED,40,location,centre=True)
-
-    
     
     #message stats
     font_size = 20
@@ -1936,7 +1956,7 @@ def player_loose():
     make_message("Highscore:            "+str(get_highscore(name)),WHITE,font_size,location)
     
     location = location = [screen_width//2-150,screen_height//3 +60]
-    make_message("Elapsed Time:         "+str(int(round(time.clock(),0)))+str("s"),WHITE,font_size,location)
+    make_message("Elapsed Time:         "+str(int(round(time2-time1,0)))+str("s"),WHITE,font_size,location)
 	
     #var messages
     location = None
@@ -1994,55 +2014,74 @@ def calculate_score(scen=0):
     '''
     
     global score
+    #print(clicked)
     #time.clock is float we want whole num
-    Time = round(time.clock(),0)
+    #Time = round(time.clock(),0)
     if score <250:
-        if clicked <=2:
-            score+= (50*scen) 
-        elif clicked <=3:
-            score += (45*scen)
-        elif clicked <=4:
-            score += (30*scen)
+        if clicked <=4:
+            if scen == 2:
+                score+= (500*scen)
+            else:
+                score += 50*scen
         elif clicked <=5:
+            score += (45*scen)
+        elif clicked <=6:
+            score += (30*scen)
+        elif clicked <=7:
             score += (20*scen)
         elif clicked <=6:
             score += (10*scen)
-        elif clicked <=7:
+        elif clicked <=9:
             score += (5*scen)
         #loose points if too many hits
-        elif clicked >7 and score >100:
+        elif clicked > 9 and score >100 and scen !=2:
             score += (-100*scen)
         else:
             score += (2*scen)
             
-    elif score <800:
-        if clicked <=2:
-            score+= (60*scen)
-        elif clicked <=3:
-            score += (50*scen)
-        elif clicked <=4:
-            score += (40*scen)
-        elif clicked <=5:
-            score += (30*scen)
-        else:
-            score += (-200*scen)
-
     elif score <1200:
-        if clicked <=2:
-            score+= (70*scen)
-        elif clicked <=3:
-            score += (60*scen)
+        if clicked <=4:
+            if scen ==2:
+                score += (400*scen)
+            else:
+                score+= (60*scen)
         elif clicked <=5:
             score += (50*scen)
+        elif clicked <=6:
+            score += (40*scen)
+        elif clicked <=8:
+            score += (30*scen)
+        elif clicked >=9 and scen !=2:
+            score += (-200*scen)
         else:
+            score += 20
+            
+    elif score in range(1200,2500):
+        if clicked <=4:
+            if scen ==3:
+                score += (300*scen)
+            else:
+                score+= (70*scen)
+        elif clicked <=5:
+            score += (60*scen)
+        elif clicked <=7:
+            score += (50*scen)
+        elif clicked >7 and scen !=2:
             score += (-250*scen)
-    else:
-        if clicked <=2:
-            score+= (100*scen)
-        elif clicked <=4:
-            score += (80*scen)
         else:
+            score += 20
+    else:
+        if clicked <=3:
+            if scen ==2:
+                score += (800*scen)
+            else:
+                score+= (100*scen)
+        elif clicked <=6:
+            score += (80*scen)
+        elif clicked >6 and scen !=2:
             score += (-300*scen)
+        else:
+            score += 20
             
     if enemy_sunk_ships <2 and scen ==2 and clicked <=5:
         bonus = 250
@@ -2069,7 +2108,7 @@ def update_highscore_display(score):
     
     #remove old highscore
     location = [100,550]
-    pygame.draw.rect(screen,(BLACK),([location[0],location[1],170,20]))
+    pygame.draw.rect(screen,(BLACK),([location[0],location[1],200,20]))
     pygame.display.flip()
 
     #display highscore on interface
@@ -2080,7 +2119,7 @@ def update_score_display(score):
 
     #remove old score
     location = [100,575]
-    pygame.draw.rect(screen,(BLACK),([location[0],location[1],150,20]))
+    pygame.draw.rect(screen,(BLACK),([location[0],location[1],200,30]))
     pygame.display.flip()
 
     #display score on interface
@@ -2107,7 +2146,7 @@ def runGame():
     global ai_ship_guess
     global first_loop   
     global score
-    counter_init = 0
+    global time1
     
     run = True
     while run == True:
@@ -2138,7 +2177,7 @@ def runGame():
 
         #display username on interface
         #location = [( ( screen_width//2 ) + ( ( screen_width//2-100 ) //6 ) -( len(name)*2) -100 ) ,( screen_height//screen_height+100 )]
-        location = [(screen_width//2) + (screen_width//4)-140,Ce2-HEIGHT//2 -MARGIN]
+        location = [(screen_width//2) + (screen_width//4)-135,Ce2-HEIGHT//2 -MARGIN]
         make_message(name+"'s Territory",(YELLOW),22,location)
         
         #load in highscore
@@ -2151,6 +2190,10 @@ def runGame():
         user_sunk = 0
         enemy_sunk_ships = 0
 
+        time1 = round(time.clock(),0)
+        #print('time1',time1)
+        counter_init = 0
+        
         # Creates interactive sea grid #
         sea_board = make_sea_grid(screen)
         sea_board = generate_fleets(sea_board,num_to_generate)
@@ -2169,7 +2212,7 @@ def runGame():
         #<--- Call Mainloop --->
         #returns true or false
         if  main_loop():
-            #print(user_sunk)
+            ##print(user_sunk)
             gamePlay_sound.stop()
             pass
         else: run = False

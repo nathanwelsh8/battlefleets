@@ -1,12 +1,8 @@
-
-Nathan:2755
+Gran_Jan:5880
+Mum:5050
+Nathan:3020
 Mark:2745
 Gregorisbad:2525
-Mum:2505
 Moogpoog:2485
-Adam_T:2475
-Megafaggot:2475
-Youwontwin:2475
 Adele:2475
-Natnan:2035
-Bot3:1050
+Adam_T:2475

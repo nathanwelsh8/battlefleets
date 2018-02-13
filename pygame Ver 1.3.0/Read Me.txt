@@ -1,0 +1,2 @@
+1. If pygame is installed (only not installed if not in a beta testing session) then doubleclick runGame.py
+2. if pygame not installed install then runGame.py
