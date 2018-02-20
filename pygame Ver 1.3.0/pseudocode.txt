@@ -1,0 +1,1549 @@
+import modules [pygame,random,system,time,os]
+initialise pygame
+load sound files [titleSound,gamePlay,playerWin,playerLoose]
+
+make screen_width = integer(1280)
+make screen_height = integer(600)
+
+make WIDTH = integer(40)
+make HEIGHT = integer(40)
+make MARGIN = integer(5)
+
+define colours [GREEN,PINK,WHITE,RED,BLACK,BLUE,YELLOW] as their RGB standards
+
+make C = integer(100)
+make C2 = integer(175)
+
+make Ce = integer( screen_width - (8* (MARGIN+HEIGHT) + MARGIN + C) )
+make Ce2 = integer(Ce)
+
+make width = integer(120)
+make height = integer(80)
+
+make score = integer(0)
+make first_loop = boolean(True)
+make clicked = integer(0)
+make user_sunk = integer(0)
+
+initialise ship_ai as None
+
+make enemy_sunk_ships = integer(0)
+
+initialise ships_found as an empty array
+
+make time = integer(<time program run>)
+make time2 = integer(0)
+
+initialise spriteGroup as <pygame sprite group object>
+
+initialise clock as <pygame clock object>
+
+define class newSprite(INHERRIT: <pygame sprite object>)
+	
+	define method initialise(IN: filename)
+		initialise <self> as sprite
+		initialise <self>.imagess as an empty array
+		
+		fetch and load filename as an images
+		add images(filename) to array <self>.imagess
+		
+		set sprite skin to <self>.images[0] 
+		
+		get the size the sprite takes up on the screen using 
+	end method initialise
+	
+	define method addImage(IN: filename)
+		fetch and load filename as images
+		add images(filename) to array <self>.images
+	end method addImage
+	
+	define method move(IN xpos, ypos, centre=boolean(False) as default)
+		if centre is True
+			centre <self>.sprite on the screen 
+		else then
+			position <self>.sprite [xpos,ypos] from the topleft of screen
+		end if/else
+	end method move
+	
+	define method changeImage(IN: index)
+		update sprite image to <self>.image[index]
+		make oldcenter = <position on screen>
+		make <self>.sprite = <self>.image
+		
+		display <self>.sprite at oldcenter
+		make <self>.currentImage = index
+	end method changeImage
+	
+end class newSprite
+
+define class ai_ship_guess(INHERRIT: None)
+	
+	initialise class array <ai_ship_guess>.knowledge_base as an empty array
+	
+	define method initialise(IN: ini_x_pos,ini_y_pos)
+		make <self>.orientation = None
+		add array([ini_x_pos,ini_y_pos,1]) to the array <ai_ship_guess>.knowledge_base to create 2D array
+		
+		setup the root position
+		make <self>.planeconstant = integer(0)
+		initialise class dictionary <self>.planevariables 
+		add values (-1:-1,<length enemy_board[0]):-1> ) into <self>.planevariables 
+		
+		initialise <self>.edges_found an empty array
+	end method  initialise 
+	
+	create method update_planevars(IN:None)
+		loop through <ai_ship_guess>.knowledge_base as point
+			if <self>.orientation == string('h') and point[0] == <self>.planeconstant then do
+				make dictionary <self>.planevariables[ point[1] ]  = point[2]
+			else if <self>.orientation == string('v') and point[1] == self.planeconstant then do
+				make disctionary <self>.planevariables[ point[0] ] = point[2]
+			else then do
+				pass
+			end if/elseif/else
+	end method update_planevars
+	
+	define method decide(IN:None)
+		if <self.orientation> is None then do
+			make ai_resp = the result of method <self>.guestimate()
+		else if <self>.edges_found >=2 then do
+			take integer(1) away from ai_resp
+		else then do
+			call <self>.update_planevars()
+			make ai_resp = result of method <self>.deduce()
+	
+	define method guestimate(IN:None, OUT: next_guess[0],next_guess[1])
+		make outwith_range = boolean(True)
+		initialise empty array next_guess
+		
+		loop while assesing orientation criteria is True
+			make outwith_range = boolean(False)
+			make modifier = <random choice of [-1,1]>
+	
+			check for possibility of ship on horizontal
+				if True then
+					make next_guess = <plausable next position>
+					make guess_orient = string('h')
+					make guess_constant = <self>.root[0]
+				else then
+					make outwith_range = boolean(True)
+				end if/else
+					
+			check for possibility of orient on vertical 
+						if True then
+							make next_guess = <plausable next position>
+							make guess_orient = string('v')
+							make guess_constant = <self>.root[1]
+						else then 
+							make outwith_range = boolean(True)
+						end if/else
+			make result = enemy_board[next_guess[0][next_guess[1]]
+			add (next_guess[0],next_guess[1],result) to array <ai_ship_guess>.knowledge_base
+		end loop
+	
+		if result == 0
+			if guess_orient = string('h') and has same vertical coords as other coords in <ai_ship_guess>.knowledge_base and is next to that coordiante then do
+				make <self>.orientation = string('vertical')
+				make <self>.planeconstant = <self>.root[1]
+				make <self>.planevariables[self.root[1]] = integer(1)
+			
+			else if guess orient = string('v') and has same horizontal coords as other coords in <ai_ship_guess>.knowledge_base and is nect to that coordinate then do
+				make <self>.orientation = 'h'
+				make <self>.planeconstant = <self>.root[1]
+				make <self>.planevariables[<self>.root[1]] = integer(1)
+			else then do
+				pass
+			end if/elseif/else
+				
+		else if result  == 1 then do
+			make <self>.orientation = guess_orient
+			make <self>.planeconstant = guess_constant	
+			make <self>.planevariables[guess_contstant] = integer(1)
+			
+			if <self>.orientation == string('h') then do
+				make <self>.planevariables[ self.root[0] ] = integer(1)
+			else if  <self>.orientation == 'v' then do
+				make <self>.planevariables[ self.root[1] ] = integer(1)
+			else then 
+				pass
+			end if/elseif/else
+				
+		end if/else if
+			
+		return values next_guess[0], next_guess[1]
+	end method guestimate()
+					
+				
+	define method deduce(IN:None, OUT:next_guess[0], next_guess[1])
+		make check_direction = <random choice between[-1,1]>
+		
+		loop through keys in dictionary <self>.planevariables as key
+			if <self>.planevariables[key] == 1 then do
+				make progression_point = integer(1)
+				break out of loop
+			end if
+		end loop
+		
+		make next_guess_var = None
+		
+		loop while next_guess_var == None
+			make progression_point add the value of check_direction
+			
+			if progression_point is a key in dictionary <self>.planevariables then do
+				if <self>.planevariables[progression_point] is <potential edge of ship> or <within dimentions of analysis> then do
+					if check_direction is not in array  <self>.edges_found then do
+						add check_direction to array <self>.edges_found
+					end if
+					
+					if <length of array> <self>.edges_found ==2 then do
+						return value -1
+					end if
+					make check_direction = integer(-1)*check_direction
+				end if
+			else if 0 is not <= progression_point which is not < <length> of enemy_board then do
+				make <self>.planevariables[progression_point] = -1
+				
+				if check_direction is not in <self>.edges_found then do
+					add check_direction to array <self>.edges_found
+				end if
+				
+				if <length> of <self>.edges_found == 2 then do
+					return -1
+				end if
+				make check_direction = integer(-1)*check_direction
+			
+			else then do
+				make next_guess_var = array [progression_point,<self>.planeconstant]
+			
+			end if/else if/else
+		end loop
+		
+		if <self>.orientation == 'h' then do
+			make next_guess = array[<self>.planeconstant,progression_point]
+			
+		else if <self>.orientation == 'v' then do
+			make next_guess = array[progression_point,<self>.planeconstant]
+		else then 
+			pass
+		end if/elseif/else
+		
+		make result = <value of board location using next_guess coordinates>
+		if result = 0 then do
+			add check_direction to array <self>.edges_found
+		
+		else if result == 1 and value of (progression_point+check_direction) is a plane variable then do
+			if check_direction is not in <self>.edges_found then do
+					add check_direction to array <self>.edges_found
+			end if
+		else then	
+			pass
+		end if/elseif/else
+		
+		return values next_guess[0], next_guess[1]
+	end method deduce()
+	
+end class ai_ship_guess
+
+
+define procedure get_highscore(IN:name, OUT:highscore)
+				
+	open textfile <read privildges> as object file
+		loop through each line in file
+			
+			make string_devider = string(':')
+			use string_devider to extract username from line
+			if username = name then do
+				make highscore = line[<string_devider position>+1:<end of line>]
+				return value highscore
+			else then 
+				pass
+			end if/else
+		end loop
+	close textfile
+		
+	open textfile <write privildges> as object file
+		write <newline>+string(name+':'+'0') to file
+		make highscore = integer(0)
+		return value highscore
+	close textfile
+end procedure get_highscore()
+	
+define procedure get_largest(IN:list,start OUT:largest)
+		make large = start 
+		
+		loop through each in list as i
+			if list[i] > list[large] then do
+				make large = if
+			end if
+		end loop
+		return value large
+end method get_largest()
+
+
+define procedure selection_sort(IN:list,list2 OUT: list,list2)
+		loop for <length of list> as item
+			make largest = call procedure get_largest(list),item
+			if largest is not item 
+				swap list[largest] with list[item]
+				swap list2[largest] with list2[item]
+			else then
+				pass
+			end if/else
+		end loop
+		return arrays list,list2
+end procedure selection_sort()
+
+define procedure save_highscore(IN: name,score)
+	make string_devider = string(':')
+	open textfile as file
+		import file data as list(data)
+		make list = data
+		intialise empty array details
+		
+		loop for <length of data> as row
+			if row == 0 then do
+				ignore row by pass
+			else then do
+				add list[row] to array details
+				
+				loop to search for name in datatbase
+					if name is found then do
+						update details array where name = details[:string_devider+1] 
+							replace details[string_devider+1:] with score
+					else then
+						pass
+					end if/else
+				end loop
+			end if/else
+		end loop
+	close textfile
+		
+	initialise empty arrays score_list and name_list
+		
+	loop for <data in indexes of details> as i
+		if i is None or blank then do 
+			pass
+		else then do
+			split i into an array d where d[0] is name and d[1] is highscore
+				add d[0] to array name_list
+				add d[1] to array score_list
+		end if/else
+	end loop
+	
+	initialise empty array data
+	make score_list and name_list = call procedure selection_sort(score_list,name_list)
+		
+	loop for <length of name_list> as i
+		add string(name_list[i]+':'+score_list[i]) to array data
+	end loop
+		
+	open textfile <write privildges> as object file
+		loop for <length of data> as line
+			write <newline>+data[line] to file
+		end loop
+	close textfile
+end procedure save_highscore()	
+
+define procedure display_leaderboard(IN:name)
+			
+	load background image
+	
+	load leaderboard image
+	make font_size = 24
+	make location = array [0,180]
+	
+	make message = <leaderboard header>
+	call procedure make_message(message,WHITE,font_size_location,centre=True)
+	
+	make font_size = 20
+	
+	open textfile <read privildges> as file
+		loop from 0 to 10 incrememting +1 as counter 
+			if counter[:<position of>':'] = name then do
+				display counter on <interface at centre + counter*20> with YELLOW font
+			else then
+				display counter on <interface at centre + counter*20> with WHITE font 
+			end if/else
+		end loop
+	close textfile
+	
+	<update display>
+	
+	if <user hover area of screen where '<back>' button located> then do	
+		make <back> button yellow
+	else then	
+		make <back> burron white
+	end if/else
+	
+	if user clicks <back> button then do
+		return True
+	else then 
+		call procedure press_instructions(<game event type = [MOUSEMOTION,MOUSEBUTTONDOWN]>)
+		
+		if <MOUSEBUTTONDOWN on <back> button> then do
+			return True
+		end if
+	end if/else
+		
+end procedure display_leaderboard
+	
+			
+define procedure makeSprite(IN:filename OUT: thisSprite)
+
+	initialise thisSprite as an instance of class newSprite() pass in filename
+	return instance thisSprtie
+end procedure makeSprite
+
+define procedure showSprite(IN:sprite)
+	add sprite to spriteGroup
+end procedure showSprite
+
+define procedure moveSprite(IN: sprite, xpos,ypos,centre = boolean(False) by default)
+	sprite.<pygame move>(x,y,centre)
+	call procedure updateDisplay()
+end procedure moveSprite
+
+define procedure loadImage(IN:filename OUT:image)
+	
+	if filename exists then do
+		
+		if filename == <instructions file> then do
+			
+			make image = <load image from filename
+			make image = <scale image to 80x80px>
+			return image
+			
+		else then do
+			make image = <load image filename>
+			make image = <scale image to WIDTHxHEIGHTpx>
+		end if/else
+	else
+		<display error message to show file not found>
+	end if/else
+end procedure loadImage
+
+define procedure updateDisplay(IN:None)
+	make spriterects = <draw spriteGroup on screen>
+end procedure updateDisplay
+
+define procedure screen_size(IN:width,screen_height)
+	make screen = <pygame create screen of screen_width x screen_height px>
+	return screen
+end procedure screen_size
+
+define procedure prefrences(IN:screen)
+	bk_img = <pygame load image>
+	call procedure updateDisplay
+end procedure prefrences
+
+define procedure set_title(IN:title)
+	<pygame set screen title> = string(title)
+	call procedure updateDisplay()
+end procedure set_title
+
+define procedure make_message(IN:message,colour,text_size,location,center = boolean(False) by default OUT:screen_text)
+	make font = <pygame load font 'OCR A Extended' and use text_size>
+	make screen_text = <pygame create blitable object using message as text and font as font>
+	
+	if center == False then do
+		<pygame blit screen_text to screen in location>
+		call procedure updateDisplay()
+		return value screen_text
+	else then do	
+		initialise array as [<pygame x center position>,<pygame y centre position>]
+		<pygame blit screen_text to screen in location>
+		call procedure updateDisplay()
+		return value screen_text
+	end if/else
+end procedure make_message
+
+define procedure make_sea_grid(IN:screen OUT:None)
+	initialise empty array sea_board
+	
+	loop from 0 to 8 as row
+		add <empty index> to array sea_board
+			loop from 0 to 8 as col
+				add integer(0) to sea_board[row] to form 2D array
+			end loop
+	end loop
+	return array sea_board
+end procedure make_sea_grid
+
+define procedure new_validate(IN:board,orient,x_pos,y_pos,length,sign OUT: boolean(True/False) )
+	if orient == 0 then do
+		if <ship fits on board> then do
+			pass
+		else then do
+			return boolean(False)
+		
+		loop for integer(length) times as offset
+			if <one above fleet on board> then do
+				make up = board[y_pos-1][x_pos+(offset*sign)]
+				if up == 1 then do
+					return boolean(False)
+				else then
+					pass
+				end if/else				
+			else then do 
+				pass
+			end if/else
+			
+			if board[y_pos][x_pos+(offset*sign)] == 1 then do
+				return boolean(False)
+			else then
+				pass
+			end if/else
+			
+			if <one below fleet on board> then do
+				dn = board[y_pos+1][x_pos+(offset*sign)]
+				if dn == 1 then do
+					return boolean(False)
+				else then 
+					pass
+				end if/else
+			else then
+				pass
+			end if/else
+			
+		if <if left of fleet on board> then do
+			lft = board[y_pos][(x_pos+(-1*sign))]
+			if lft == 1 then do
+				return boolean(False)
+			else then 
+				pass
+			end if/else
+		else then 
+			pass
+		end if/else
+			
+		if <right of fleet fits on board> then do
+			rgt = board[y_pos][(x_pos+(length*sign))]
+			if rgt == 1 then do 
+				return boolean(False)
+			else then do
+				pass
+		else then 
+			pass
+		end if/else
+		
+	else then do
+		if <ship fits on board> then do
+			pass
+		else then do
+			return boolean(False)
+		
+		loop for integer(length) times as offset
+			if <one above fleet on board> then do
+				make up = board[y_pos+(offset*sign)][x_pos-1]
+				if up == 1 then do
+					return boolean(False)
+				else then
+					pass
+				end if/else				
+			else then do 
+				pass
+			end if/else
+			
+			if board[y_pos+(offset*sign][x_pos)] == 1 then do
+				return boolean(False)
+			else then
+				pass
+			end if/else
+			
+			if <one below fleet on board> then do
+				dn = board[y_pos+(offset*sign)][x_pos+1]
+				if dn == 1 then do
+					return boolean(False)
+				else then 
+					pass
+				end if/else
+			else then
+				pass
+			end if/else
+		end loop
+			
+		if <if left of fleet on board> then do
+			lft = board[y_pos+(-1*sign)][(x_pos)]
+			if lft == 1 then do
+				return boolean(False)
+			else then 
+				pass
+			end if/else
+		else then 
+			pass
+		end if/else
+			
+		if <right of fleet fits on board> then do
+			rgt = board[y_pos+(length*sign)][(x_pos)]
+			if rgt == 1 then do 
+				return boolean(False)
+			else then do
+				pass
+		else then 
+			pass
+		end if/else
+	end if/else
+	return boolean(True)
+end procedure new_validate
+
+define procedure generate_fleets(IN:board,fleet OUT:board)
+	make current_fleet = integer(0)
+	
+	loop while True
+		make orient = <random choice of (0,1)>
+		
+		make x_pos = <random index value in length of board[0]>
+		make y_pos = <random index value in length of board >
+		
+		make sign = <random choice of (-1,1)>
+		
+		make length = fleet[current_fleet]
+		
+		if <call procedure new_validate pass in (board,orient,x_pos,y_pos,length,sign) > is True then do
+			if orient == 0 then do 
+				loop for integer(length) as box
+					make board[y_pos][x_pos+(box*sign)] = 1
+				end loop
+			else then do 
+				loop for integer(length) as box 
+					make board[y_pos+(box*sign)][x_pos] = 1
+				end loop
+			end if/else
+			
+			if <added whole fleet> then do
+				break from loop
+			else then do
+				increment current_fleet by +1
+			end if/else
+	
+	return array board
+end procedure generate_fleets
+
+define procedure check_user_event(IN: mouse_pos)
+
+	<global access>user_sunk
+	<global access>sea_board
+	<global access>score
+	<global access>clicked
+	
+	initialisearray position_mouse = mouse_pos
+	
+	make col = (position_mouse[0]-C) // (WIDTH+MARGIN)
+	make row = (position_mouse[1]-C2) // (HEIGHT+MARGIN)
+	
+	if sea_board[row][col] == 1 then do
+		make sea_board[row][col] = integer(2)
+		increment user_sunk by +1
+		call procedure calculate_score( integer(1) )
+		make temp_count = 0
+		
+		loop for each value in <call procedure check_sink(0,row,col)> as sink_coord
+			make sea_board[sink_coord[0]][sink_coord[1]] = integer(3)
+			call procedure calculate_score(2)
+			increment temp_count by +1
+		end loop
+		if temp_count !=0 then do	
+			make cicked = integer(0)
+			return None
+		else then
+			pass
+		end if/else
+	
+	else if sea_board[row][col] == 2 or sea_board[row][col] == string("M") then do
+		pass
+	
+	else if sea_board[row][col] == 0 then do
+		make sea_board[row][col] = string("M")
+	else then 
+		pass
+	end if/else if /else
+	
+	increment clicked by +1
+	return None
+end procedure check_user_event
+
+define procedure check_sink( team, row, col OUT:arrays sink_arr, edge_arr )
+	if team = 1 then do
+		work_board = sea_board
+	else then do
+		work_board = enemy_board
+	end if/else
+	
+	if <left of ship is clear> then do
+		make lf = work_board[row][(col-1)]
+	else then
+		make lf = 0
+	end if/else
+	
+	if <left of right is clear> then do
+		make rt = work_board[row][(col+1)]0
+	else then
+		make lf = 0 
+	end if/else
+	
+	if <up of ship is clear> then do
+		make up = work_board[(row-1)][col]
+	else then
+		make up = 0
+	end if/else
+		
+	if <down of ship is clear> then do
+		make dn = work_board[(row+1)][col]
+	else then
+		make dn = 0
+	end if/else
+	
+	if lf or rt = 1 or 2 then do
+		make orient = 'h'
+		ship_constant = row
+		progression_point = col
+		ship_plane = work_board[row]
+		
+	else then do
+		make orient = "v"
+        make ship_constant = col
+        make progression_point = row
+        make ship_plane = array [ rw[col] for rw in work_board ]
+	end if/else
+	
+	make check_direction = 1
+    initialise empty array edgz = []
+    initialise empty array edgepos = []
+    initialise empty array twos_pos = []
+	
+	loop while boolean(True)
+		increment progression_point by +check_direction
+		
+		if <user not sunk all ships in fleet> then do
+			return empty array 
+		else if ship_plane[progression_point] == 0 or ship_plane[progression_point] == string("M") then do
+			 
+            if not ( check_direction in edgz ) then do 
+                add check_direction to array edgz
+				add progression_point to array edgepos
+			else then
+				pass
+			end if/else
+                
+            make check_direction = -1*(check_direction)
+            
+            if len(edgz) == 2:
+                break
+			else then 
+				pass
+			end if/else
+		end if/else
+	end loop
+	
+	initialise empty array sink_arr 
+    initialise empty array edge_arr
+    
+    loop for hit_pos in array twos_pos
+        if orient == "h" then do
+			add array [ ship_constant, hit_pos ] to array sink_arr
+        else then do
+			add array [ hit_pos, ship_constant ] to array sink_arr
+		end if/else
+	end loop
+		
+		
+    loop for edge in edgepos:
+        if orient == "h" then do
+			add array [ ship_constant, hit_pos ] to array edge_arr
+        else then do
+			add array [ hit_pos, ship_constant ] to array edge_arr
+		end if/else
+	end loop
+            
+    if team == 0 then do
+        return array sink_arr
+    else then do 
+        return  arrays sink_arr, edge_arr
+	end if/else
+	
+end procedure check_sink				
+
+							
+define procedure ai_guess(IN:None OUT: x_pos,y_pos)						
+	<global access> ship_ai		
+	
+	if <ship_ai contains data> then do
+		make ai_turn = call ship_ai class method decide()
+		
+		if au_turn !=-1 then do
+			return value ai_turn
+		else then do 
+			make ship_ai = None
+		end if/else
+	else then 
+		pass
+	end if/else
+	
+	make picked_value = integer(2)
+	
+	loop while picked_value present in array ['M',2,3]
+		make x_pos = <random index value from enemy_board[0]>
+		make y_pos = <random index value from enemy_board[0]>
+							
+		make picked_value = enemy_board[x_pos][y_pos]
+		
+		if picked_value ==1 then do
+			make ship_ai = call procedure ai_ship_guess(x_pos,y_pos)
+		else if picked_value is not integer(0) then do
+		
+			if enemy_sunk_ships == 12 then do
+				return -2,-2
+			else then
+				pass
+			end if/else
+		end if/else
+	return values x_pos,y_pos
+end procedure ai_guess
+
+define procedure check_ai_event(IN: row,col)
+	<global access>enemy_board
+	<global access>enemy_sunk_ships
+	
+	if enemy_board[row][col] in array [ "M", 2, 3 ] then do 
+        pass
+		
+    else if enemy_board[row][col] == 1 then do 
+        make enemy_board[row][col] = integer(2)
+        increment enemy_sunk_ships by +1
+        
+        make sinks and edgez = call procedure check_sink( 1, row, col )
+        loop for sink_coord in array sinks
+		
+            make enemy_board[sink_coord[0]][sink_coord[1]] = integer(3)
+                
+            loop for edge_coord in array edgez
+				add array [ edge_coord[0], edge_coord[1], 0 ] to class ai_ship_guess array knowledge_base
+            end loop
+		end loop
+    else if enemy_board[row][col] == 0 then do
+        make enemy_board[row][col] = string("M")
+        
+    else then do 
+        pass
+	end if/else if/else
+end procedure check_ai_event
+
+define procedure update_kb()
+	make row_pos = (0)
+	loop through array enemy_board as row
+		make col_pos = integer(0)#
+		
+		loop through array row as value
+			if value <not already present in knowledge base> then do
+				add array [ row_pos, col_pos, 0 ] to class ai_ship_guess array knowledge_base
+			else then	
+				pass
+			end if/else
+			increment col_pos +1
+		end loop
+		increment row_pos +1
+	end loop
+end procedure update_kb
+
+define procedure update_interface():
+	loop from 0 to 8 as row
+		loop from 0 to 8 as col 
+			<set sprite costume to water using changeImage(0)>
+		
+			if sea_board[row][col] == 2 then do	
+				<set sprite costume to hit ship using changeImage(3)>
+			else if sea_board[row][col] == 3 then do	
+				<set sprite costume to sunk ship using changeImage(4)>
+			else if sea_board[row][col] == 'M' then do
+				<set sprite costume to miss using changeImage(1)>
+			else then 
+				pass
+			end if/else if/else
+		
+			call procedure moveSprite( sprite , ((MARGIN + WIDTH) *col  + MARGIN +C), ((MARGIN + HEIGHT) * row + MARGIN +C2 ) )
+			call procedure showSprite(sprite)
+		end loop
+	end loop 
+	
+	loop from 0 to 8 as row 
+		loop from 0 to 8 as col 
+		
+			<set sprite costume to water using changeImage(0)>
+		
+			if enemy_board[row][col] == 2 then do	
+				<set sprite costume to hit ship using changeImage(3)>
+			else if enemy_board[row][col] == 3 then do	
+				<set sprite costume to sunk ship using changeImage(4)>
+			else if enemy_board[row][col] == 'M' then do
+				<set sprite costume to miss using changeImage(1)>
+			else then 
+				pass
+			end if/else if/else
+		
+			call procedure moveSprite( sprite , ((MARGIN + WIDTH) *col  + MARGIN +C), ((MARGIN + HEIGHT) * row + MARGIN +C2 ) )
+			call procedure showSprite(sprite)
+		end loop
+	end loop 
+end procedure update_interface
+
+define procedure intructions(IN: None)
+	make location_x = (screen_width-145)
+	make location_y = (screen_height-45)
+	call poocedure make_message( "<HELP!>", WHITE,30, array [location_x,location_y] )
+	return None
+end procedure instructions
+
+
+
+define procedure load_instructions_interface(IN:None)
+	inst = <load image instructions.png>
+	<pygame blit inst to screen>
+	
+	initialise array location = [(screen_width-145), (screen_height-45)]
+	<pygame wipe screen at location>
+	
+	make array location = [(screen_width/2-50), (screen_height-45)]
+    make loop = boolean(True)
+	loop while loop is True:
+	
+        loop at each <pygame game event> as event
+			 
+            if player hovering over back button then do
+				make COLOUR = YELLOW
+            else then do 
+                make COLOUR = WHITE
+                
+			<pygame wipe screen at array location>
+            call procedure make_message("<Back>",COLOUR,24,location,centre=True)
+
+            if player clicked back button then do
+               
+               
+                back_g =  <load background image>
+				<blit back_g to screen>
+								
+
+               
+                if <length name> >2 then do 
+
+                    if enemy_sunk_ships <12 and user_sunk<12 then do
+						
+						call procedure instructions()
+                        call procedure update_highscore_display( call procedure get_highscore( name ) )
+
+                        call procedure update_score_display(score)
+                            
+                        <display image board_bk.png>
+                        call procedure update_interface() 
+                        
+                        make array location = [(MARGIN + WIDTH)+C-30 ,C2-HEIGHT//2 -MARGIN ]
+                        call procedure make_message("Enemy Territory",(YELLOW),25,location)
+
+                        make array location = [(screen_width//2) + (screen_width//4)-135,Ce2-HEIGHT//2 -MARGIN]
+                        call procedure make_message(name+"'s Territory",(YELLOW),22,location)
+                            
+                        
+                            
+                    else if  user_sunk == 12 then do
+                    
+						call procedure update_interface()
+                        call procedure instructions()
+                            
+                        call procedure update_highscore_display( call procedure get_highscore( name ) )
+
+                        call procedure update_score_display(score)
+                        return call procedure player_win()
+                    else then do 
+                        
+                        call procedure update_interface()
+                        call procedure instructions()
+                        call procedure return player_loose()
+                    end if/elseif/else/else
+					
+                else then do
+					pass
+					
+				end if/else
+
+       
+		end loop
+        return True
+    end loop        
+    make loop =  False
+end procedure load_instructions_interface
+
+define procedure press_instructions(IN:<pygame event>)
+
+	if user is hovering over <HELP!> button then do 
+		make COLOR = YELLOW
+	else then do
+		make COLOR = WHITE
+	end if/else
+	call procedure make_message("<HELP!>",COLOR,30,array screen_width-145,screen_height-45])])
+	
+	if user clicked <HELP!> button then do
+		return call procedure load_instructions_interface()
+	else then
+		pass
+	end if else: 
+end procedure press_instructions
+
+define procedure get_input(IN:None OUT:name)
+
+	<global access> titleSound
+	<pygame blit bk_img>
+	update_interface()
+	
+	<pygame play titleSound on loop untill stopped>
+	initialise array location = [100,500]
+	make ERR_COLOR = BLACK
+	constant1 = 400
+	constant2 = 25
+	initialise array error_location = [100,550,constant1,constant2]
+	
+	call procedure make_message("Please Enter A Username:",WHITE,15, array location)
+	initialise empty array name
+	
+	loop while boolean(True)
+		loop at each <pygame game event> as event
+			if call procedure press_instructions() is boolean(True) then do
+				return call procedure get_input()
+			else then
+				pass
+			end if/else
+				
+			if player presses quit then do
+				<pygame quit game>
+			
+			else if event not key press then do
+				pass
+			else then do
+				key = <get key press as character>
+				if key is <pygame illegal keys> then 
+					pass 
+				else if key == <backspace> then do
+					make name = name[0:-1]
+				else if key == <enter key > then do
+					if len(name)>2 then do
+						<wipe enter username message from screen>
+						<pygame stop titleSound> 
+						return value name
+					else then 
+						pass
+					end if/else
+				else if <length of name> >15
+					<clear screen at location = [100,550]>
+					<display error message>
+					return call procedure get_input()
+				=
+			
+				else if key ==  <spacebar key> then do
+					add ' ' to array name
+				else then do 
+					add key to array name
+				end if/else if/else
+				
+			end if/else if/else
+		end loop
+	end loop
+end procedure get_input
+
+define procedure main_loop(IN:None OUT:press_quit)
+	
+	make running = boolean(True)
+	make press_quit = boolean(True)	
+	<pygame play sound gamePlame untill sound stopped>
+	
+	loop while running == boolean(True) and user_sunk != <sum of> array num_to_generate and enemy_sunk_ships != <sum of> array num_to_generate then do
+		
+		loop at each <pygame game event> as event 
+			
+			call procedure press(<pygame event>)
+			
+			if user presses mouse then do
+				if user presses in board dimentions then do
+					call procedure check_user_event(event)
+					
+					call procedure update_interface()
+					
+					if user_sunk < <sum of> num_to_generate then do
+						call procedure update_kb()
+						make aiturn = call procedure ai_guess()
+						call procedure check_ai_event(aiturn[0],aiturn[1])
+						
+						call procedure update_interface()
+						
+					else then
+						pass
+					
+					end if/else
+				else then 
+					pass
+				end if/else
+				
+				if user presses <pygame quit game> then do
+					make running = boolean(False)
+					make press_quit = running 
+					return value press_quit
+				else then do 
+			else then 
+				pass
+			end if
+				pass
+			end if/else
+			
+		call procedure update_interface()
+		
+	return value press_quit
+end procedure main_loop
+
+define procedure player_win()
+	<global access> name
+	<global access> time2
+	
+	make time2  = <time game has been running>
+	make font_size = integer(20)
+	
+	make bk_img = <load image show_stats.png>
+	<blit image bk_img to screen>
+	
+	initialise array location = [screen_width//2, screen_height//4]
+	
+	call procedure make_message("You WIN!",GREEN,40,location,centre=boolean(True) )
+	 
+	make highscore = call procedure get_highscore(name)
+	
+	if score > highscore then do
+		display_highscore = score
+	else then do
+		display_highscore = highscore
+	end if/else
+	
+	make array location = [screen_width//2-150,screen_height//3]
+	call procedure  make_message("----- <Game Stats> ------",WHITE,font_size,location)
+	
+	make array location = [screen_width//2-150,screen_height//3 +20]
+	call procedure make_message("Score: <tab space> "+string(score),WHITE,font_size,location)
+    
+	make array location = [screen_width//2-150,screen_height//3 +40]
+	call procedure make_message( "Highscore: <tab space>"+string(display_highscore),WHITE,font_size,location )
+	
+	make array location =  [screen_width//2-150,screen_height//3 +60]
+	call procedure make_message("Elapsed Time: <tab space> "+string( integer( <round time2-time1 to 0 dp> ) )+string("s"),WHITE,font_size,location)
+	
+	make location = None
+	
+	make font_size = 18 
+	
+	if score> get_highscore(name) then do 
+            make message = "You beat your highscore!"
+            make message2 = ""
+
+            call procedure save_highscore(name,score)
+            
+            make array location = [(screen_width//2)-170,screen_height//2]
+			
+    else if (score > (get_highscore(name)*0.9)) then do 
+            
+            make message = "You almost beat your"
+            make message2 = "highscore why not try again!"
+    else then do  
+            
+            make message = "Play again to try beat your"
+            make message2 = "highscore!"
+			
+    end if/elseif/else
+	
+    if location contains data then do
+            call procedure make_message(message,WHITE,font_size,location,centre=True)
+    else then do 
+            make array location = [( (screen_width//2) -150 ),  ( (screen_height//3) +100)]
+            call procedure make_message(message,WHITE,font_size,location,centre=True)
+
+            initialise array location2 = [( (screen_width//2) -150 ),  ( (screen_height//3) +120)]
+            call procedure make_message(message2,WHITE,font_size,location2,centre=True)     
+    end if/else      
+    return call procedure end_game_menu()
+end procedure player_win
+
+	
+define procedure end_game_menu():
+    <global access>name
+    <global access>time2
+    
+    make font_size = 22
+    make message1 = "<Play Again>"
+    initialise array location1 = [473,410] 
+    call procedure make_message(message1,WHITE,font_size,location1)
+
+    make message2 = "<Leaderboard>"
+    initialise array location2 = [644,410] 
+    call procedure make_message(message2,WHITE,font_size,location2)
+
+    make message3 = "<Sign Out>"
+    initialise array location3 = [473,470] 
+    call procedure make_message(message3,WHITE,font_size,location3)
+
+    make message4 = "<Quit>"
+    initialise array location4 = [644,470] 
+    call procedure make_message(message4,WHITE,font_size,location4)
+    
+    loop while while boolean(True):
+        loop at each <pygame game event> as event 
+            if player highlights <HELP! button> then do
+				make COLOR = YELLOW
+			else then do
+                COLOR = WHITE
+			end if/else
+            
+               
+			<pygame clear screen at <HELP!> button location>
+            call procedure make_message("<HELP!>",COLOR,30,[screen_width-145,screen_height-45])
+            
+            if user highlight <Play Again> button then do 
+                call procedure make_message(message1,YELLOW,font_size,location1)
+            else then do 
+				call procedure make_message(message1,WHITE,font_size,location1)
+            end if/else
+			
+            if user highlight <Leaderboard> button then do
+				call procedure make_message(message2,YELLOW,font_size,location2)
+            else then do
+                call procedure make_message(message2,WHITE,font_size,location2)
+             end if/else
+			 
+            if user highlights <Sign Out> button then do
+				call procedure make_message(message3,YELLOW,font_size,location3)
+            else then do
+				call procedure make_message(message3,WHITE,font_size,location3)
+                    
+            if user highlights   <Quit> button then do
+				call procedure make_message(message4,YELLOW,font_size,location4)
+            else then do
+				call procedure make_message(message4,WHITE,font_size,location4)
+            
+            
+            if user presses <pygame quit button> then do
+                <pygame quit>
+                return boolean(False) 
+			
+			
+			
+            else if <pygame event is mouse click> then do  
+                call procedure press_instructions(event)
+                
+                if user presses <Play Again> button then do
+                    return boolean(True)
+                
+                else if user presses <Leaderboard> then do
+                    
+                    call procedure display_leaderboard(name)
+                    
+                    make bk_img = < oad image background.png >
+					<pygame blit image bk_img to screen>
+					
+                    if user_sunk == sum(num_to_generate) then do 
+                        return call procedure player_win()
+                    else then do
+                        return call procedure player_loose()
+                    end if/else
+					
+                else if user presses <Sign Out> button then do 
+                    make name = call procedure get_input()
+                    return boolean(True)
+					
+                else if user press <quit button> then do
+					use <pygame quit>
+					return boolean(False)
+                    
+                else then do
+					pass
+				end if else/elseif/else
+				
+            else then do 
+				pass
+			end if/elseif/else
+		end loop		
+	end loop
+end procedure end_game_menu
+
+	
+
+define procedure player_win()
+	<global access> name
+	<global access> time2
+	
+	make time2  = <time game has been running>
+	make font_size = integer(20)
+	
+	make bk_img = <load image show_stats.png>
+	<blit image bk_img to screen>
+	
+	initialise array location = [screen_width//2, screen_height//4]
+	
+	call procedure make_message("Defeated",RED,40,location,centre=boolean(True) )
+	 
+	make highscore = call procedure get_highscore(name)
+	
+	if score > highscore then do
+		display_highscore = score
+	else then do
+		display_highscore = highscore
+	end if/else
+	
+	make array location = [screen_width//2-150,screen_height//3]
+	call procedure  make_message("----- <Game Stats> ------",WHITE,font_size,location)
+	
+	make array location = [screen_width//2-150,screen_height//3 +20]
+	call procedure make_message("Score: <tab space> "+string(score),WHITE,font_size,location)
+    
+	make array location = [screen_width//2-150,screen_height//3 +40]
+	call procedure make_message( "Highscore: <tab space>"+string(display_highscore),WHITE,font_size,location )
+	
+	make array location =  [screen_width//2-150,screen_height//3 +60]
+	call procedure make_message("Elapsed Time: <tab space> "+string( integer( <round time2-time1 to 0 dp> ) )+string("s"),WHITE,font_size,location)
+	
+	make location = None
+	
+	make font_size = 18 
+	
+	if score> get_highscore(name) then do 
+            make message = "You beat your highscore!"
+            make message2 = "Your highscore will not be saved"
+			make message3 = "Since you did not win"
+
+            call procedure save_highscore(name,score)
+            
+            make array location = [(screen_width//2)-170,screen_height//2]
+			
+    else if (score > (get_highscore(name)*0.9)) then do 
+            
+            make message = "You almost beat your"
+            make message2 = "highscore why not try again!"
+    else then do  
+            
+            make message = "Play again to try beat your"
+            make message2 = "highscore!"
+			
+    end if/elseif/else
+	
+    if location contains data then do
+            call procedure make_message(message,WHITE,font_size,location,centre=True)
+    else then do 
+            make array location = [( (screen_width//2) -150 ),  ( (screen_height//3) +100)]
+            call procedure make_message(message,WHITE,font_size,location,centre=True)
+
+            initialise array location2 = [( (screen_width//2) -150 ),  ( (screen_height//3) +120)]
+            call procedure make_message(message2,WHITE,font_size,location2,centre=True)     
+    end if/else      
+    return call procedure end_game_menu()
+end procedure player_loose
+	
+
+define procedure calculate_score(scen=0):
+    
+    <global access> score
+    
+    if score <250 then do
+        if clicked <=4 then do
+            if scen == 2 then do
+                make score = score+ (500*scen)
+            else then do
+                make score = score+ 50*scen
+        elif clicked <=5 then do
+            score = score+ (45*scen)
+        elif clicked <=6 then do 
+            score = score+ (30*scen)
+        elif clicked <=7 then do
+            score = score+ (20*scen)
+        elif clicked <=6 then do 
+            score = score+ (10*scen)
+        elif clicked <=9 then do
+            score = score+ (5*scen)
+       
+        elif clicked > 9 and score >100 and scen !=2 then do
+            score = score+ (-100*scen)
+        else:
+            score = score+ (2*scen)
+		end if/elseif/else/else
+            
+    elif score <1200 then do 
+        if clicked <=4 then do
+            if scen ==2 then do
+                score = score+ (400*scen)
+            else:
+                score =score+ (60*scen)
+        elif clicked <=5 then do
+            score = score+(50*scen)
+        elif clicked <=6 then do
+            score = score+ (40*scen)
+        elif clicked <=8 then do
+            score = score+ (30*scen)
+        elif clicked >=9 and scen !=2 then do
+            score = score+ (-200*scen)
+        else:
+            score =score- 20
+            
+    elif score in range(1200,2500) then do
+        if clicked <=4 then do
+            if scen ==3 then do
+                make score = score+ (300*scen)
+            else then do
+                make score = score+ (70*scen)
+        elif clicked <=5 then do
+            make score = score+ (60*scen)
+        elif clicked <=7 then do
+            make score = score+ (50*scen)
+        elif clicked >7 and scen !=2 then do 
+            make score = score+ (-250*scen)
+        else then do
+            make score += 20
+		end if/elseif/else/else
+    else then do
+        if clicked <=3 then do 
+            if scen ==2 then do
+                make score = score+ (800*scen)
+            else then do
+                make score = score+ (100*scen)
+			end if/else
+			
+        elif clicked <=6 then do 
+            make score = score+ (80*scen)
+        elif clicked >6 and scen !=2 then do 
+            make score = score+(-300*scen)
+        else then do
+            make score = score+ 20
+		end if/elseif/else/else
+    end if/elseif/else
+	
+    if enemy_sunk_ships <2 and scen ==2 and clicked <=5 then do 
+        bonus = 250
+        
+    elif enemy_sunk_ships <6 and scen ==2 and clicked<=7 then do 
+        bonus = 100
+    elif enemy_sunk_ships <10 and scen ==2 and clicked <=7 then do 
+        bonus = 25
+    else:
+        bonus = 0
+	end if/elseif/else
+    
+    make score = score+ bonus
+
+    
+    call procedure update_score_display(score)
+
+    
+    if score > get_highscore(name) then do 
+        call procedure update_highscore_display(score)
+	else then pass
+	end if/else
+end procedure calculate_score
+
+define procedure update_score_display(score)
+	initialise array location = [100,550]
+	<pygame clear screen at location>
+	call procedure make_message("Score: "+str(score), (WHITE),20,location)
+end procedure update_score_display	
+	
+
+define procedure update_highscore_display(score)
+	initialise array location = [100,575]
+	<pygame clear screen at location>
+	call procedure make_message("Highscore: "+str(score), (WHITE),20,location)
+end procedure update_highscore_display
+
+define procedure runGame()
+	<global access> sea_board
+	<global access> enemy_board
+	<global access> user_sunk
+	<global access> enemy_sunk_ships
+	<global access> ai_ship_guess
+	<global access> first_loop   
+	<global access> score
+	<global access> time1
+	
+	make run = boolean(True)
+	
+	loop while run == True 
+		
+		make score = integer(0)
+		
+		if first_loop != True then do
+			<blit bk_img to screen>
+			updateDisplay()
+		else then do 
+			make first_loop = False
+			
+		end if/else
+
+		make board_back = <pygame load image board_bk.png>
+		<blit image board_back to screen>
+		
+		call procedure instructions()
+		
+		initialise array location = [(MARGIN + WIDTH)+C-30 ,C2-HEIGHT//2 -MARGIN ]
+		call procedure make_message("Enemy Territory",(YELLOW),25,location)
+		
+		make location = [(screen_width//2) + (screen_width//4)-135,Ce2-HEIGHT//2 -MARGIN]
+        call procedure make_message(name+"'s Territory",(YELLOW),22,location)
+		
+		call procedure update_highscore_display()
+		
+		call procedure update_score_display()
+		
+		reset class ai_ship_guess array knowledge_base to []
+		
+		make user_sunk = integer(0)
+		make enemy_sunk_ships = integer(0)
+		
+		make time1 = <pygame get time game running>
+		
+		make counter_init = integer(0)
+		
+		make sea_board = call procedure make_sea_grid(screen)
+		make sea_board = call procedure generate_fleets(sea_board,num_to_generate)
+		
+		make enemy_board = call procedure make_sea_grid(screen)
+		make enemy_board = call procedure generate_fleets(enemy_board,num_to_generate)
+		
+		call procedure update_interface()
+		
+		if main_loop() == True then do
+			<pygame stop sound gamePlay_sound>
+		else then do	
+			make run = boolean(False)
+		end if/else
+		
+		if player sunk all ships then do
+			<pygame play sound playerWin_sound>
+			make run = call procedure playerWin()
+			
+		else if AI sunk all user ships then do
+			<pygame play sound playerLoose_sound>
+			make run = call procedure player_loose()
+			
+		else then do
+			make run = boolean(False)
+		end if/elseif/else
+	end loop
+end procedure runGame
+
+make screen = call procedure screen_size(screen_width,screen_height)
+call procedure prefrences(screen)
+call procedure set_title("BattleFleets")
+
+sprite = makeSprite("water.bmp")
+
+call instance sprite method addImage('miss.bmp')
+call instance sprite method addImage('ship.bmp')
+call instance sprite method addImage('shipdamaged')
+call instance sprite method addImage('shipsunk.bmp')
+
+call procedure instructions()
+
+make name = get_input()
+
+call procedure runGame()
+
+<pygame quit game>
+			
