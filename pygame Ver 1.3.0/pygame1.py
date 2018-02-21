@@ -1,4 +1,4 @@
-#BattleFleets ver 1.1.0
+#BattleFleets ver 1.3.0
 #Nathan Welsh
 #Start Date:  /  /17
 #  End Date:  /  /18
@@ -6,7 +6,7 @@
 #
 #    Create labels: Title, players territory                          :Done 
 #    Username Input                                                   :Done
-#    create AI grid, position, show users fleets to them           	  :DONE
+#    create AI grid, position, show users fleets to them               :DONE
 #
 #    check event func: add statements to display sunk fleet image
 #    when all ships are sunk									   	  :Done 24/01/18
@@ -22,10 +22,10 @@
 #
 #    Leaderboard?... optional                                       :Done
 #
-#    Show different screens when all fleets sunk 					  :Done 02/02/2018
+#    Show different screens when all fleets sunk 		    :Done 02/02/2018
 #
 #    Add clock Speed                                                :Done 04/01/2018
-#    Add sounds
+#    Add sounds                                                     :Done 08/02/2018
 #    
 #
 
@@ -40,10 +40,6 @@ import sys
 import time
 import os
 
-try:
-    from tkinter import *
-except ImportError:
-    from Tkinter import *
 
 # initialise pygame
 # IMPORTANT
@@ -148,7 +144,7 @@ class newSprite(pygame.sprite.Sprite):
          Allows For sprite image to be added
          '''
          self.images.append(loadImage(filename))
-
+     
      def move(self, xpos, ypos, centre=False):
         '''
         Allows for the sprite to be positioned on the interface
@@ -161,6 +157,7 @@ class newSprite(pygame.sprite.Sprite):
         else:
             #positions from the topleft
             self.rect.topleft = [xpos, ypos]
+     
 
      def changeImage(self, index):
          'This subroutine allows for sprite images to updated and will be used when ships are sunk '
@@ -240,19 +237,27 @@ class ai_ship_guess:
         "Deduction - only called when assesing orientation"
         outwith_range = True
         next_guess = []
+
+        #assses orientation by checking all criteria
         while next_guess in [ point[:2] for point in ai_ship_guess.knowledge_base ] or outwith_range:
             #One run guaranteed, equivalent to until loop
             #As no single unit ships exist, this will always eventually find a test
             outwith_range = False
+
+            #orientation not known ro random descicion
+            #for direction must be made
             modifier = random.choice([-1,1])
             if random.choice([True,False]):
                 next_guess = [ self.root[0], ( self.root[1] + modifier ) ]
                 if not( 0<=(self.root[1]+modifier)<len(enemy_board[0]) ):
                     outwith_range = True
+
+                    #continue as we do not want to exit loop yet
                     continue
                 guess_orient = "h"
                 guess_constant = self.root[0]
                 guess_variable = ( self.root[1] + modifier )
+                
             else:
                 next_guess = [ (self.root[0] + modifier), self.root[1] ]
                 if not( 0<=(self.root[0]+modifier)<len(enemy_board[0]) ):
@@ -324,6 +329,9 @@ class ai_ship_guess:
                     # 0 signifies empty sea ie. edge of ship; -1
                     # means outside board ONLY WITHIN THE BOUNDS OF
                     # AI ANALYSIS encountered_edges.append(check_direction)
+                    
+                    #the values 0 1 are different from update_interface() as they refer to
+                    #fleet health.
                     
                     if not ( check_direction in self.edges_found ):
                         self.edges_found.append(check_direction)
@@ -632,7 +640,7 @@ def display_leaderboard(name):
 
             #click event
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                press_instructions(event.pos)
+                press_instructions(event)
                 #print(event.pos)
                 
                 if event.pos[0] in range(596,778) and event.pos[1] in range(420,440):
@@ -641,10 +649,7 @@ def display_leaderboard(name):
                     return True
                 else: pass
 				
-            else: pass
-
-
-    
+            else: pass  
 
                    ###Sprite Routines ###
 
@@ -703,7 +708,7 @@ def updateDisplay():
     #are visually updated here
      spriteRects = spriteGroup.draw(screen)
 
-     #.flip() is more efficient than .upodate()
+     #.flip() is more efficient than .update()
      pygame.display.flip()
 
 def screen_size(width,screen_height):
@@ -720,8 +725,8 @@ def prefrences(screen):
     this sub. makes the background colour white,
     '''
     #sets background colour
-    global colour
-    colour = (160,160,160)
+    #global colour
+    #colour = (160,160,160)
     bk_img = pygame.image.load("new_background.bmp").convert_alpha() 
     screen.blit(bk_img,(0,0))
     #screen.fill(colour)
@@ -736,25 +741,6 @@ def set_title(title):
     pygame.display.flip()
     return
 
-def place_objects():
-          # Syntax for adding label
-          # message, the colour, the font size, location on the screen
-          # This method off adding labels allows for multiple to be
-          # created saving memory and lines of code.
-
-          #title label
-          #background image now places this
-          #location = [screen_width//2-100, screen_height//screen_height]
-          #make_message("Battle Fleets",(0,0,0),50 ,location)
-
-          
-
-          #enemy label
-          #location = [screen_width-(8* (MARGIN+HEIGHT)-25),Ce2-HEIGHT//2 -MARGIN]
-          #make_message("Your Territiory",(255,106,0),25,location)
-
-          #Instructionslabel
-          return instructions()
 
 def make_message(message,colour,text_size,location,centre=False):
     'This Subroutine takes text and converts'
@@ -996,20 +982,7 @@ def generate_fleets(board,fleet=[2,3,3,4]): #define fleet as passed in as it imp
         
     return board
 
-if False:
-#def found_ships():
-#   sign = choice([-1,1])
-#   if ships_found:
-#       for i in ships_found:
-#           x_pos,y_pos = i[0],i[1]
-#           ###print("\nUSING HIT SHIP")
-#           return x_pos,y_pos,sign
-#   else:
-#       x_pos,y_pos = randrange(0,len(enemy_board[0])),randrange(0,len(enemy_board[0]))
-#       ###print("\nUSING RANDOM COORDS")
-#       return x_pos,y_pos,sign
-    pass
-        
+       
 
         
 def check_user_event(mouse_pos):
@@ -1039,21 +1012,14 @@ def check_user_event(mouse_pos):
 
         #gets tile clicked on by user
         col = (position_mouse[0] -C)  // ((WIDTH + MARGIN))
-            #########print()
-            #########print('mouse pos x',position_mouse[0],'area:', (position_mouse[0]) // ((WIDTH + MARGIN)))
-        
-        row = (position_mouse[1] -C2) // ((HEIGHT + MARGIN))
-            #########print('mouse pos y',position_mouse[1]-C2,'area:', (position_mouse[1]-C2) // ((WIDTH + MARGIN)))
-            #########print()
             
+        row = (position_mouse[1] -C2) // ((HEIGHT + MARGIN))                       
             
         #if tile contains fleet undiscovered
         if sea_board[row][col] == 1:
 
             #add choice to an array so user
             #cant select same area again
-
-            #chosen.append([col,row,sea_board[col][row],True])
 
             sea_board[row][col] = 2
             
@@ -1227,7 +1193,6 @@ def ai_guess():
         fit on board and have not been selected
         before then passes the guess to the AI
     '''
-    
     global ship_ai
     
     if ship_ai:
@@ -1248,8 +1213,6 @@ def ai_guess():
         x_pos = random.randrange(0,len(enemy_board[0]))
         y_pos = random.randrange(0,len(enemy_board[0]))
         picked_value = enemy_board[x_pos][y_pos]
-    
-        ###print(x_pos,y_pos,picked_value)
 
         if picked_value == 1:
             ship_ai = ai_ship_guess(x_pos,y_pos)
@@ -1259,8 +1222,7 @@ def ai_guess():
             #fix added in main loop 01/02/2018
             
             if enemy_sunk_ships == 12:
-                ###print("BAD SHIT!")
-                return -2,-2########
+                return -2,-2
             
     return x_pos, y_pos
     
@@ -1311,149 +1273,6 @@ def update_kb():
                 ai_ship_guess.knowledge_base.append([ row_pos, col_pos, 0 ])
             col_pos += 1
         row_pos += 1
-    
-if False:
-#   
-#def AI_process(x_pos,y_pos,sign):
-#
-#     #this will the process used to determine the AI selected area
-#     ###print("\n")
-#     ###print("X:",x_pos)
-#     ###print("Y:",y_pos)    
-#     ###print("SIGN:",sign)
-#     sign_old = sign
-#     sign = choice([-1,1])
-#     ###print("NEW SIGN:",sign)
-#     ###print("Board Location Xy:",enemy_board[x_pos][y_pos],"Sign",sign)
-#     
-#     if 0 <= x_pos <= len(enemy_board[0]) and  0 <= y_pos <= len(enemy_board[0]):
-#         ###print("fits on board")
-#         
-#         if enemy_board[x_pos][y_pos] == 1:
-#             ###print("CHOSE 1, FOUND A SHIP, HIT")
-#             #if chosen is a fleet
-#             
-#             enemy_board[x_pos][y_pos] +=1
-#             
-#             if ships_found:
-#                 ###print("Value removed")
-#                 try: 
-#                     ships_found.remove([x_pos-sign_old,y_pos])
-#                 except ValueError: 
-#                     try:
-#                         ships_found.remove([x_pos,y_pos-sign_old])
-#                     except ValueError:
-#                         try:
-#                             ships_found.remove([x_pos,y_pos+sign_old])
-#                         except ValueError:
-#                             try:
-#                                 ships_found.remove([x_pos+sign_old,y_pos])
-#                             except ValueError:
-#                                 ###print("Value To be removed not found")
-#                                 pass
-#                         
-#             ships_found.append([x_pos,y_pos])
-#             return
-#              
-#         elif enemy_board[x_pos][y_pos] == 2:
-#             
-#             #if chosen is already a hit ship
-#             
-#             if enemy_board[x_pos+1*sign][y_pos] ==2:
-#                 ###print("LOOK TO SEE IF SUNK LEFT OR RIGHT (up/down)")
-#                 #if ship left or right thats hit
-#                 return AI_process(x_pos+1*sign,y_pos,sign)
-#                
-#             elif enemy_board[x_pos][y_pos+1*sign] ==2:
-#                 #if ship up or down thats hit.
-#                 ###print("LOOK TO SEE IF UP / DOWN (up/down)")
-#                 return AI_process(x_pos,y_pos+1*sign,sign)
-#            
-#             else:
-#                 ###print("CANNOT FIND SHIPS IN X/Y, Guessing Random")
-#                 if sign == 1:
-#                     #guess left/right
-#                     ###print("GUESSING LEFT/RIGHT")
-#                     return AI_process(x_pos+1*choice([-1,1]),y_pos,sign)
-#                 else:
-#                     #guess up/down
-#                     ###print("GUESSING UP/DOWN")
-#                     return AI_process(x_pos,y_pos+1*choice([-1,1]),sign)
-#                
-#         elif enemy_board[x_pos][y_pos] == 'M' or enemy_board[x_pos][y_pos] == 3:
-#                       
-#             #if chosen is a previous miss or sunk fleet
-#                       
-#             ###print("CHOSE M, RESELECTING")
-#             x_pos,y_pos,sign = found_ships()
-#             return AI_process(x_pos,y_pos,sign)
-#
-#         elif enemy_board[x_pos][y_pos] == 0:
-#             
-#             #if chosen does not contain ship
-#             enemy_board[x_pos][y_pos] = 'M'
-#             ###print("SHIP MISSED")
-#             return
-#         else:
-#             # use for stoping infinate loops and bugs,
-#             # does not terminate but here for the safe side
-#             ###print("ELSE WAS TRIGGERED, RETURNING...")
-#             return
-#     else:
-#         ###print("WEEEE")
-#         if x_pos <0:
-#             return AI_process(x_pos+1,y_pos,-1*sign_old)
-#             
-#         elif x_pos > 7:
-#             return AI_process(x_pos-1,y_pos,-1*sign_old)
-#         elif y_pos<0:
-#             return AI_process(x_pos,y_pos+1,-1*sign_old)
-#         else:
-#             return AI_process(x_pos,y_pos-1,-1*sign_old)
-#                        
-    
-#increment = 0
-#while True:
-#  try:
-#      
-#      if enemy_board[x_pos+increment][y_pos] == 2:
-#           ###print("INCREMENTING")
-#           increment +=1
-#
-#      elif enemy_board[x_pos+increment][y_pos] != 2:
-#
-#           if enemy_board[x_pos+increment][y_pos] == 'M':
-#               ###print("MISS RECURSIVE WITH NEW COORDS")
-#               x_pos = randrange(0,len(enemy_board[0]))
-#               y_pos = randrange(0,len(enemy_board[0]))
-#               return AI_process(x_pos,y_pos)
-#
-#           elif enemy_board[x_pos+increment][y_pos] == 3:
-#               ###print("sUNK FLEET RECURSIVE NEW COORDS")
-#               x_pos = randrange(0,len(enemy_board[0]))
-#               y_pos = randrange(0,len(enemy_board[0]))
-#               return AI_process(x_pos,y_pos)
-#
-#           elif enemy_board[x_pos+increment][y_pos] == 0:
-#              ###print("EMPTY SEA UPDATE TO SHOW MISS")
-#              enemy_board[x_pos+increment][y_pos] = 'M'
-#              break
-#
-#           else:
-#               ###print("MAKE EQUALLS HIT")
-#               enemy_board[x_pos+increment][y_pos] ==2
-#               break
-#  except ValueError: pass
-
-#elif enemy_board[x_pos][y_pos] == 2:
- #    if enemy_board[x_pos+1][y_pos] == 1:
-  #       x_pos = x_pos+1
-   #      return AI_process(x_pos,y_pos)
-
-    # elif enemy_board[x_pos][y_pos] == 1:
-     #    y_pos = y_pos+1
-      #   return AI_process(x_pos,y_pos)
-    pass
 
 def update_interface():
 
@@ -1515,60 +1334,135 @@ def instructions():
 
         'sets up instructions button' 
     
-        location_x,location_y = (screen_width-width), (screen_height-height)
-        instruction_button = newSprite('./instructions.bmp')
-
-        moveSprite(instruction_button,location_x,location_y)
+        location_x,location_y = (screen_width-145), (screen_height-45)
+        #instruction_button = newSprite('./instructions.bmp')
+        make_message("<HELP!>",WHITE,30,[location_x,location_y])
+        #moveSprite(instruction_button,location_x,location_y)
         #showSprite(instruction_button)
-        return instruction_button
+        return #instruction_button
 
 def load_instructions_interface():
-    'when instructions pressed the '
-    'interface is loaded through this sub'
-    ''
-    'uses tk to make a popup instructions interface'
+    #load instructions and back button
     
-    instructions = """
-    Game Paused \n
-    --- Instructions ---\n\n
-    \t1. Type a Username, if you have played before and can remember your previous
-       username then re-use it and we will re-load your previou s highscore.
+    screen.blit(pygame.image.load('./instructions.png').convert_alpha(), (0,0) )
 
-    2. Once you have submitted your highscore the game will begin.
-       The objective of the game is to sink all enemy ships before they sink
-       yours.
+    #hide help button as already in help
+    location = [(screen_width-145), (screen_height-45)]
+    pygame.draw.rect(screen,BLACK,([location[0],location[1],150,50]))
+    
+    location = [(screen_width//2-50), (screen_height-45)]
+    loop = True
+    while loop:
+        for event in pygame.event.get():
 
-    3. To attack and area of the board simply click the tile on the
-       'Enemy Territory ' grid and the game will tell you if you have sunk a
-       ship or not. The computer will then have a chance to attack you.
+            #loop = press_instructions(event)
+            
+            if event.type == pygame.MOUSEMOTION and (event.pos[0] in range(screen_width//2-50,screen_width//2+50) ) and (event.pos[1] in range(screen_height-40,screen_height-10) ):
+                COLOUR = YELLOW
+            else:
+                COLOUR = WHITE
+                
+            #displays hover as highlighted or non highlighted state
+            pygame.draw.rect(screen,BLACK,([location[0],location[1],150,50]))   
+            make_message("<Back>",COLOUR,24,location,centre=True)
 
-       \tBe carefull as the attacks of the computer are not random.. It learns!
+            
+            if event.type == pygame.MOUSEBUTTONDOWN and ( event.pos[0] in range(screen_width//2-50,screen_width//2+50) ) and ( event.pos[1] in range(screen_height-40,screen_height-10) ):
+                
+                #load previous screen
+                back_g =  pygame.image.load('new_background.bmp').convert_alpha()
+                screen.blit(back_g,(0,0))
+                
 
-    4. If you win then congratulations! your highscore will be saved to an
-       external file for future use.
+                #checks game state
+                try:
+                    if len(name)>2:
 
-    (Close me to resume playing)
-     """
-    i_screen = Tk()
-    try:
-        while True:
-            i_screen.title("Instructions (Paused)")
-            Label(i_screen, padx =5, pady = 5, text = instructions).pack()
-            i_screen.mainloop()
-    except TclError:
-        return
+                        #check if during play
+                        if enemy_sunk_ships <12 and user_sunk<12:
+                            
+                            #--- restore session --- #
+                            
+                            instructions()
+                            #load in highscore
+                            update_highscore_display( get_highscore( name ) )
 
-def press_instructions(eventpos):
+                            #user starts with no score
+                            update_score_display(score)
+                            
+                            screen.blit( pygame.image.load('board_bk.png').convert_alpha(),(0,0))
+                            update_interface() 
+                            #Display enemy territory label 
+                            location = [(MARGIN + WIDTH)+C-30 ,C2-HEIGHT//2 -MARGIN ]
+                            make_message("Enemy Territory",(YELLOW),25,location)
+
+                            #display username on interface
+                            #location = [( ( screen_width//2 ) + ( ( screen_width//2-100 ) //6 ) -( len(name)*2) -100 ) ,( screen_height//screen_height+100 )]
+                            location = [(screen_width//2) + (screen_width//4)-135,Ce2-HEIGHT//2 -MARGIN]
+                            make_message(name+"'s Territory",(YELLOW),22,location)
+                            
+                            # --- session restored ---# 
+                            
+                        elif user_sunk == 12:
+                            #check user win
+                            update_interface()
+                            instructions()
+                            
+                            #load in highscore
+                            update_highscore_display( get_highscore( name ) )
+
+                            #user starts with no score
+                            update_score_display(score)
+                            return player_win()
+                        else:
+                            #user loss
+                            update_inerface()
+                            instructions()
+                            return player_loose()
+                        
+                    #if not press do nothing
+                    else: pass
+
+                #error as name not defined
+                #user must be on start sceen
+                except NameError:
+                    #returns true for get_input()
+                    #data handling
+                    return True
+                
+                #break loop if no conditions occur
+                #safeguard to stop loop
+                loop =  False
+            
+            
+
+def press_instructions(event):
         'checks if instructions has been pressed'
-        posX,posY = eventpos
-        if posX  >= (screen_width-width) and posY >= (screen_height-height):
-                ###print('LOADING INTERFACE...')
-                load_instructions_interface()
+
+        #if mouse move then check for highlight
+        #better practice than previous
+        #try: .. Except:.. method
+        if event.type == pygame.MOUSEMOTION:
+                if event.pos[0] >= (screen_width-145) and event.pos[1] >= (screen_height-45):
+                    COLOR = YELLOW
+                else:
+                    COLOR = WHITE
+            
+                pygame.draw.rect(screen,BLACK,([screen_width-150,screen_height-50,150,50]))
+                make_message("<HELP!>",COLOR,30,[screen_width-145,screen_height-45])
+                
+        if event.type == pygame.MOUSEBUTTONDOWN:
+
+            #if pressed then show  instructions interface
+            if event.pos[0]  >= (screen_width-145) and event.pos[1] >= (screen_height-45):
+                    #print('LOADING INTERFACE...')
+                    return load_instructions_interface()
+        
 
          
              ############## User Inut & Validation ####################
 
-def get_input():
+def get_input(name= []):
     """
         Allows for user input livetime char by char
         filters out illegal chars and allows for user
@@ -1581,42 +1475,46 @@ def get_input():
     pygame.display.flip()
 
     titleSound.play(-1)
-    
+
     #bottom lhs corner
     location = [100,550]
 
     #sets location of error message
     ERR_COLOR = (0,0,0)
-    constant1 = 400
+    constant1 = 600
     contant2 = 25
     error_location = [ 100,550 , constant1,contant2]
     error_text_location = [ 100,575, constant1,contant2]
 
     #sets location of text
     make_message("Please Enter A Username:",(WHITE),15,location)
-
+    if len(name)>=15:
+         make_message("ERROR: Cannot be more than 15 characters!",(RED),15,error_text_location)
     #registers each key
+
     #stroke individually so must be an array
 
     name = []
     while True:
             for event in pygame.event.get():
-
+                    if press_instructions(event):                        
+                        return get_input()
+                    
                     if event.type == pygame.QUIT:
                             pygame.quit()
                             
                     elif event.type == pygame.MOUSEBUTTONDOWN:
-                         press_instructions(event.pos)
-
+                         #press_instructions(event)
+                         pass
                     elif event.type != pygame.KEYDOWN: pass
                     #if not key press
 
                     else:
-                            #########print("GOT KEY",chr(event.key))
+                            #print("GOT KEY",chr(event.key))
                             try:
                                  #filters out non compatibles
                                  ##print (event.key)
-                                 if event.key in range(97,122) or event.key in range(48,57) or event.key in [8,13,32]:
+                                 if event.key in range(97,123) or event.key in range(48,58) or event.key in [8,13,32]:
                                     key =  chr(event.key)
                                  else: 
                                     key = ""
@@ -1638,20 +1536,20 @@ def get_input():
                                     name = "".join(name)
                                     #remove enter name message to make
                                     #room for uname and hscore
-                                    pygame.draw.rect(screen,(ERR_COLOR),([100,550,400,25]))    
+                                    pygame.draw.rect(screen,(ERR_COLOR),([100,550,600,25]))    
                                     titleSound.stop()
                                     return name.title()
                                 
                                 else: pass                   
 
 
-                            elif len(name) >= 15:
+                            elif len(name) > 15:
                                                                             
                                     # this is a messy cover up for the fact 
                                     # pygame cannot remove drawn rects
                                     pygame.draw.rect(screen,(ERR_COLOR),([100,550,400,25]))
-                                    make_message("Cannot be more than 15 characters!",(255,0,0),15,(error_text_location))
-                                    return get_input()
+                                    #make_message("Cannot be more than 15 characters!",(255,0,0),15,(error_text_location))
+                                    return get_input(name)                          
                                     
 
                             elif key == ' ':
@@ -1662,13 +1560,19 @@ def get_input():
                             else:
                                     name.append(key)
                             try:
+                                 if name[0] == str("_"):
+                                      name = name[1:]
+                            except IndexError:
+                                 pass
+                              
+                            try:
                                     #try to displa inputted ke on interface
                                     pygame.draw.rect(screen,(ERR_COLOR),(error_location))
                                     name_string =  "".join(name)
                                     make_message("Please Enter A Username:  "+name_string.title(),(WHITE),15,location)
 
                                     #time.sleep(2)
-                            except TypeError as error:
+                            except TypeError:
                                     #ocuurs when name array is empty
                                     make_message("Please Enter A Username:  ",(WHITE),15,location)
                                     #time.sleep(2)
@@ -1697,6 +1601,9 @@ def main_loop():
     
     while running == True and user_sunk !=sum(num_to_generate) and enemy_sunk_ships !=sum(num_to_generate) and clock.tick(30):
         for event in pygame.event.get():
+
+            press_instructions(event) 
+            
             if event.type == pygame.MOUSEBUTTONDOWN:
                 #########print()
                 #########print("MOUSE CLICK")
@@ -1707,6 +1614,7 @@ def main_loop():
 
                 #if selected coord on board
                 if event.pos[0] in range(102,461) and event.pos[1] in range(180,535):
+        
                 
                     ' PLAYER TURN '                    
                     
@@ -1718,7 +1626,7 @@ def main_loop():
                     try:
                         if sea_board[row][col] in [0,1]:
                             check_user_event(event.pos)
-                            press_instructions(event.pos)
+                            #press_instructions(event.pos)
 
                             ' END PLAYER TURN '
                             
@@ -1735,16 +1643,11 @@ def main_loop():
 
                                 #for row in enemy_board: ###print(row)
                                 
-                                #x_pos,y_pos,sign = found_ships()
-                                #AI_process(x_pos,y_pos,sign)
-                                
+                                                          
                                 ' END COMPUTER TURN '
                                 
                                 update_interface()
 
-                                ###for i in sea_board: ######print(i)
-                                #########print()
-                                ###for i in enemy_board: ######print(i)
                     except IndexError:
                         pass
 
@@ -1776,10 +1679,10 @@ def player_win():
     global name
     global time2
     time2 = round(time.clock())
-    #print('T2',time2)
+   
     #clear screen#
     #pygame.draw.rect(screen,(colour),([0,0,screen_width//,screen_height+100]))
-    pygame.display.flip()
+    #pygame.display.flip()
     font_size = 20
 
     #cover for stats
@@ -1789,8 +1692,12 @@ def player_win():
 	#you win
     location = [(screen_width//2 ),screen_height//4]
     make_message("YOU WIN!",GREEN,40,location,centre=True)
-
     
+    highscore = get_highscore(name)
+    if score> highscore:
+        display_highscore = score
+    else:
+        display_highscore = highscore
     
     #message stats
     location = [screen_width//2-150,screen_height//3]
@@ -1799,10 +1706,10 @@ def player_win():
     location = [screen_width//2-150,screen_height//3 +20]
     make_message("Score:                "+str(score),WHITE,font_size,location)
     
-    location = location = [screen_width//2-150,screen_height//3 +40]
-    make_message("Highscore:            "+str(get_highscore(name)),WHITE,font_size,location)
+    location = [screen_width//2-150,screen_height//3 +40]
+    make_message("Highscore:            "+str(display_highscore),WHITE,font_size,location)
     
-    location = location = [screen_width//2-150,screen_height//3 +60]
+    location = [screen_width//2-150,screen_height//3 +60]
     #print(time2,time1)
     make_message("Elapsed Time:         "+str(int(round(time2-time1,0)))+str("s"),WHITE,font_size,location)
 	
@@ -1865,7 +1772,15 @@ def end_game_menu():
     
     while True:
         for event in pygame.event.get():
-            try:
+            if event.type == pygame.MOUSEMOTION:
+                if event.pos[0] >= (screen_width-145) and event.pos[1] >= (screen_height-45):
+                    COLOR = YELLOW
+                else:
+                    COLOR = WHITE
+            
+                pygame.draw.rect(screen,BLACK,([screen_width-150,screen_height-50,150,50]))
+                make_message("<HELP!>",COLOR,30,[screen_width-145,screen_height-45])
+            
                 if event.pos[0] in range(location1[0],(location1[0]+140) ) and event.pos[1] in range(location1[1],(location1[1]+20)):              
                     make_message(message1,YELLOW,font_size,location1)
                 else:
@@ -1879,13 +1794,12 @@ def end_game_menu():
                 if event.pos[0] in range(location3[0],(location3[0]+150) ) and event.pos[1] in range(location3[1],location3[1]+20):
                     make_message(message3,YELLOW,font_size,location3)
                 else:
-                    make_message(message3,WHITE,font_size,location3)
+                   make_message(message3,WHITE,font_size,location3)
                     
                 if event.pos[0] in range(location4[0], (location4[0]+100) ) and event.pos[1] in range(location4[1],location4[1]+20):
                     make_message(message4,YELLOW,font_size,location4)
                 else:
                     make_message(message4,WHITE,font_size,location4)
-            except AttributeError: pass
             
             
             if event.type == pygame.QUIT:
@@ -1893,7 +1807,7 @@ def end_game_menu():
                 return False 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 ##print(event.pos) 
-                press_instructions(event.pos)
+                press_instructions(event)
                 ##print(event.pos)
                 if event.pos[0] in range(location1[0],location1[0]+150) and event.pos[1] in range(location1[1],location1[1]+20):
                     #play again
@@ -1968,16 +1882,18 @@ def player_loose():
 
     font_size = 18    
     if score> get_highscore(name):
-            message = "You still bested your"
-            message2 = "highscore!"
+            message = "You beat your highscore!"
+            message2 = "You also lost so it will"
+            message3 = "not be saved this time!"
+            message4 = " "
 
-            save_highscore(name,score)
-            location = [(screen_width//2)-170,screen_height//2]
+            #save_highscore(name,score)
+            #location = [(screen_width//2)-170,screen_height//2]
             
     elif (score > (get_highscore(name)*0.9)):
             
-            message = "You almost beat your"
-            message2 = "highscore why not try again!"
+            message = "That wasnt too bad..."
+            message2 = "but you've done better"
             message3 = None
             message4 = None
     else: 
@@ -2166,10 +2082,13 @@ def runGame():
             
 
         ### Add labels ###
-        instruction_button = place_objects()
+        
 
         board_back = pygame.image.load('board_bk.png').convert_alpha()
         screen.blit(board_back,(0,0))
+
+        #load instructions button
+        instructions()
         
         #Display enemy territory label 
         location = [(MARGIN + WIDTH)+C-30 ,C2-HEIGHT//2 -MARGIN ]
@@ -2273,7 +2192,7 @@ sprite.addImage("shipdamaged.bmp")                     #
 sprite.addImage("shipsunk.bmp")                        #
 #-------------------------------------------------------
 
-
+instructions()
 #get users username
 name = get_input()
 
