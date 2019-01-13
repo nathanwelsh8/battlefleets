@@ -2,8 +2,7 @@
 ## School project -  Please Beta Test
 #### Badly Designed and even worsly implemented by Nathan Welsh
 #### 6th year high school project for SQA coursework.
-##### Please note: The SQA made us use certain techniques so this program 
-##### is really inefficient in places.
+##### Please note: The SQA made us use certain techniques so this program is really inefficient in places.
 ## INSTALL INSTRCTONS:
 1. Get python 3.4 or +
 2. Youtube tutorial how to get pygame module
