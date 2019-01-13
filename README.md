@@ -1,6 +1,7 @@
 #Battlefleets
 ## School project -  Please Beta Test
 #### Badly Designed and even worsly implemented by Nathan Welsh
+#### 6th year high school project for SQA coursework.
 
 ## INSTALL INSTRCTONS:
 1. Get python 3.4 or +
